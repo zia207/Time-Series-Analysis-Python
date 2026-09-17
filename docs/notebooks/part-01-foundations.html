@@ -1,0 +1,2524 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Part 1 — Foundations &amp; Data Handling – Time Series Analysis in Python</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../notebooks/part-02-stationarity.html" rel="next">
+<link href="../index.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-8b4baf804e461d9b72633f0de59a0cac.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-d5db10917c6d76a3e5f935fb4eb5ba92.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+<script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="nav-sidebar docked nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">Time Series Analysis in Python</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link active" href="../index.html" aria-current="page"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-parts" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Parts</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-parts">    
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-01-foundations.html">
+ <span class="dropdown-text">1 · Foundations &amp; Data Handling</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-02-stationarity.html">
+ <span class="dropdown-text">2 · Statistical Properties &amp; Decomposition</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-03-smoothing.html">
+ <span class="dropdown-text">3 · Smoothing &amp; Exponential Methods</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-04-arima.html">
+ <span class="dropdown-text">4 · The ARIMA Family</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-05-advanced-multivariate.html">
+ <span class="dropdown-text">5 · Advanced &amp; Multivariate Models</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-06-evaluation-backtesting.html">
+ <span class="dropdown-text">6 · Evaluation, Backtesting &amp; Baselines</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-07-feature-engineering.html">
+ <span class="dropdown-text">7 · Feature Engineering &amp; the ML Reduction</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-08-ml-forecasting.html">
+ <span class="dropdown-text">8 · Machine Learning Forecasting</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-09-deep-learning.html">
+ <span class="dropdown-text">9 · Deep Learning for Sequences</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-10-modern-dl.html">
+ <span class="dropdown-text">10 · Modern Deep Architectures</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-11-specialized-topics.html">
+ <span class="dropdown-text">11 · Specialized Topics</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-12-deployment-capstone.html">
+ <span class="dropdown-text">12 · Deployment &amp; Capstone</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+    <a href="https://github.com/zia207/Time-Series-Analysis-Python" title="Source" class="quarto-navigation-tool px-1" aria-label="Source"><i class="bi bi-github"></i></a>
+  <a href="" class="quarto-reader-toggle quarto-navigation-tool px-1" onclick="window.quartoToggleReader(); return false;" title="Toggle reader mode">
+  <div class="quarto-reader-toggle-btn">
+  <i class="bi"></i>
+  </div>
+</a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../notebooks/part-01-foundations.html">Foundations</a></li><li class="breadcrumb-item"><a href="../notebooks/part-01-foundations.html">1 · Foundations &amp; Data Handling</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Foundations</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-01-foundations.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">1 · Foundations &amp; Data Handling</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-02-stationarity.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">2 · Statistical Properties &amp; Decomposition</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Classical Forecasting</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-03-smoothing.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">3 · Smoothing &amp; Exponential Methods</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-04-arima.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4 · The ARIMA Family</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-05-advanced-multivariate.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">5 · Advanced &amp; Multivariate Models</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+ <span class="menu-text">Rigorous Evaluation</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-06-evaluation-backtesting.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">6 · Evaluation, Backtesting &amp; Baselines</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Machine Learning</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-07-feature-engineering.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">7 · Feature Engineering &amp; the ML Reduction</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-08-ml-forecasting.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">8 · Machine Learning Forecasting</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
+ <span class="menu-text">Deep Learning</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-09-deep-learning.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">9 · Deep Learning for Sequences</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-10-modern-dl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">10 · Modern Deep Architectures</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true">
+ <span class="menu-text">Frontiers &amp; Practice</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-11-specialized-topics.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">11 · Specialized Topics</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-12-deployment-capstone.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">12 · Deployment &amp; Capstone</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#what-you-will-learn" id="toc-what-you-will-learn" class="nav-link active" data-scroll-target="#what-you-will-learn">What you will learn</a></li>
+  <li><a href="#the-dataset" id="toc-the-dataset" class="nav-link" data-scroll-target="#the-dataset">The dataset</a></li>
+  <li><a href="#setup" id="toc-setup" class="nav-link" data-scroll-target="#setup">0. Setup</a></li>
+  <li><a href="#what-is-a-time-series" id="toc-what-is-a-time-series" class="nav-link" data-scroll-target="#what-is-a-time-series">1. What is a time series?</a></li>
+  <li><a href="#loading-the-data-and-building-a-proper-time-index" id="toc-loading-the-data-and-building-a-proper-time-index" class="nav-link" data-scroll-target="#loading-the-data-and-building-a-proper-time-index">2. Loading the data and building a proper time index</a>
+  <ul class="collapse">
+  <li><a href="#why-asfreqms-matters" id="toc-why-asfreqms-matters" class="nav-link" data-scroll-target="#why-asfreqms-matters">Why <code>asfreq("MS")</code> matters</a></li>
+  <li><a href="#a-note-on-time-zones" id="toc-a-note-on-time-zones" class="nav-link" data-scroll-target="#a-note-on-time-zones">A note on time zones</a></li>
+  </ul></li>
+  <li><a href="#selecting-and-slicing-by-time" id="toc-selecting-and-slicing-by-time" class="nav-link" data-scroll-target="#selecting-and-slicing-by-time">3. Selecting and slicing by time</a></li>
+  <li><a href="#resampling-changing-the-frequency" id="toc-resampling-changing-the-frequency" class="nav-link" data-scroll-target="#resampling-changing-the-frequency">4. Resampling — changing the frequency</a></li>
+  <li><a href="#rolling-windows-expanding-windows-and-lags" id="toc-rolling-windows-expanding-windows-and-lags" class="nav-link" data-scroll-target="#rolling-windows-expanding-windows-and-lags">5. Rolling windows, expanding windows, and lags</a></li>
+  <li><a href="#missing-timestamps-gaps-and-interpolation" id="toc-missing-timestamps-gaps-and-interpolation" class="nav-link" data-scroll-target="#missing-timestamps-gaps-and-interpolation">6. Missing timestamps, gaps, and interpolation</a></li>
+  <li><a href="#visualization-the-diagnostic-toolkit" id="toc-visualization-the-diagnostic-toolkit" class="nav-link" data-scroll-target="#visualization-the-diagnostic-toolkit">7. Visualization — the diagnostic toolkit</a>
+  <ul class="collapse">
+  <li><a href="#line-plots-the-first-look" id="toc-line-plots-the-first-look" class="nav-link" data-scroll-target="#line-plots-the-first-look">7.1 Line plots — the first look</a></li>
+  <li><a href="#seasonal-plot-is-there-a-within-year-cycle" id="toc-seasonal-plot-is-there-a-within-year-cycle" class="nav-link" data-scroll-target="#seasonal-plot-is-there-a-within-year-cycle">7.2 Seasonal plot — is there a within-year cycle?</a></li>
+  <li><a href="#seasonal-subseries-month-wise-plot" id="toc-seasonal-subseries-month-wise-plot" class="nav-link" data-scroll-target="#seasonal-subseries-month-wise-plot">7.3 Seasonal-subseries (month-wise) plot</a></li>
+  <li><a href="#lag-plot-and-autocorrelation-a-teaser-for-part-2" id="toc-lag-plot-and-autocorrelation-a-teaser-for-part-2" class="nav-link" data-scroll-target="#lag-plot-and-autocorrelation-a-teaser-for-part-2">7.4 Lag plot and autocorrelation — a teaser for Part 2</a></li>
+  <li><a href="#calendar-heatmap-year-month-at-a-glance" id="toc-calendar-heatmap-year-month-at-a-glance" class="nav-link" data-scroll-target="#calendar-heatmap-year-month-at-a-glance">7.5 Calendar heatmap — year × month at a glance</a></li>
+  </ul></li>
+  <li><a href="#making-the-components-concrete-stl-decomposition" id="toc-making-the-components-concrete-stl-decomposition" class="nav-link" data-scroll-target="#making-the-components-concrete-stl-decomposition">8. Making the components concrete — STL decomposition</a></li>
+  <li><a href="#exercises" id="toc-exercises" class="nav-link" data-scroll-target="#exercises">9. Exercises</a></li>
+  <li><a href="#key-takeaways" id="toc-key-takeaways" class="nav-link" data-scroll-target="#key-takeaways">10. Key takeaways</a>
+  <ul class="collapse">
+  <li><a href="#whats-next-part-2-statistical-properties-decomposition" id="toc-whats-next-part-2-statistical-properties-decomposition" class="nav-link" data-scroll-target="#whats-next-part-2-statistical-properties-decomposition">What’s next — Part 2: Statistical Properties &amp; Decomposition</a></li>
+  </ul></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/zia207/Time-Series-Analysis-Python/blob/main/notebooks/part-01-foundations.ipynb" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/zia207/Time-Series-Analysis-Python/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../notebooks/part-01-foundations.html">Foundations</a></li><li class="breadcrumb-item"><a href="../notebooks/part-01-foundations.html">1 · Foundations &amp; Data Handling</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">Part 1 — Foundations &amp; Data Handling</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p><strong>Series:</strong> <em>Time Series Analysis in Python — from Statistical Modeling to Machine Learning</em></p>
+<p>This is the first notebook in a progressive series that moves from classical statistics through modern deep learning. Part 1 is the groundwork: it will not forecast anything yet. Instead it builds the two skills every later part depends on — <strong>thinking about a series in terms of its components</strong>, and <strong>handling time-indexed data correctly in pandas</strong>. Get these wrong and every model downstream inherits the mistake.</p>
+<section id="what-you-will-learn" class="level3">
+<h3 class="anchored" data-anchor-id="what-you-will-learn">What you will learn</h3>
+<ol type="1">
+<li>What a time series is, and the four components we decompose one into</li>
+<li>How to turn raw rows into a proper <code>DatetimeIndex</code> with an explicit frequency</li>
+<li>Selecting and slicing data by time</li>
+<li>Resampling — changing the frequency of a series up or down</li>
+<li>Rolling / expanding windows and lag / shift operations</li>
+<li>Detecting and repairing missing timestamps and gaps</li>
+<li>The core diagnostic plots for time series</li>
+<li>Making the components concrete with an STL decomposition</li>
+</ol>
+</section>
+<section id="the-dataset" class="level3">
+<h3 class="anchored" data-anchor-id="the-dataset">The dataset</h3>
+<p>Throughout this series we use a single real monthly dataset, <code>monthly_price.csv</code>: <strong>356 months of global commodity prices, from January 1992 to August 2021</strong>. It mixes three families of series, which lets us contrast different temporal behaviours:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 33%">
+<col style="width: 40%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Group</th>
+<th>Columns</th>
+<th>Character</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Fertilizers</td>
+<td><code>Urea_Price</code>, <code>MP_Price</code>, <code>TSP_Price</code></td>
+<td>Strong trends, supply-driven spikes</td>
+</tr>
+<tr class="even">
+<td>Crops</td>
+<td><code>Maize_Price</code>, <code>Rice_Price</code>, <code>Wheat_Price</code></td>
+<td>Seasonality + trend</td>
+</tr>
+<tr class="odd">
+<td>Market indices</td>
+<td><code>Food_Price_Index</code>, <code>Energy_Price_Index</code>, <code>VIX_Index</code></td>
+<td>Macro cycles; VIX is volatility, not a price</td>
+</tr>
+</tbody>
+</table>
+<p>The dataset sits in the health / environment / agriculture / finance space and carries genuine macro events — the 2008 food-price crisis, the 2008 financial crisis (visible in the VIX), and the 2020 COVID shock — so the plots tell a real story rather than a synthetic one.</p>
+</section>
+<section id="setup" class="level2">
+<h2 class="anchored" data-anchor-id="setup">0. Setup</h2>
+<p>We keep Part 1 deliberately lean on libraries — <code>pandas</code>, <code>numpy</code>, and <code>matplotlib</code> do almost all the work, with a single <code>statsmodels</code> call at the end for decomposition. Everything here is standard scientific-Python.</p>
+<div id="468beb8f" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T00:01:19.902596Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T00:01:19.901703Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T00:01:20.419938Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T00:01:20.418882Z&quot;}}" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.dates <span class="im">as</span> mdates</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Consistent, readable plot styling for the whole notebook</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>plt.rcParams.update({</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="st">"figure.figsize"</span>: (<span class="dv">11</span>, <span class="fl">4.2</span>),</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="st">"figure.dpi"</span>: <span class="dv">110</span>,</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="st">"axes.grid"</span>: <span class="va">True</span>,</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="st">"grid.alpha"</span>: <span class="fl">0.3</span>,</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="st">"axes.spines.top"</span>: <span class="va">False</span>,</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    <span class="st">"axes.spines.right"</span>: <span class="va">False</span>,</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    <span class="st">"axes.titlesize"</span>: <span class="dv">13</span>,</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    <span class="st">"axes.titleweight"</span>: <span class="st">"bold"</span>,</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    <span class="st">"font.size"</span>: <span class="dv">11</span>,</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    <span class="st">"lines.linewidth"</span>: <span class="fl">1.6</span>,</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="co"># A small reusable colour palette</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>PALETTE <span class="op">=</span> [<span class="st">"#2b6cb0"</span>, <span class="st">"#c05621"</span>, <span class="st">"#2f855a"</span>, <span class="st">"#6b46c1"</span>, <span class="st">"#b83280"</span>, <span class="st">"#718096"</span>]</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"pandas :"</span>, pd.__version__)</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"numpy  :"</span>, np.__version__)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>pandas : 3.0.2
+numpy  : 2.4.4</code></pre>
+</div>
+</div>
+</section>
+<section id="what-is-a-time-series" class="level2">
+<h2 class="anchored" data-anchor-id="what-is-a-time-series">1. What is a time series?</h2>
+<p>A <strong>time series</strong> is a sequence of observations recorded in time order, usually at a fixed spacing (here, one observation per month). That ordering is the whole point: unlike a normal tabular dataset, <strong>the rows are not exchangeable</strong>. You cannot shuffle them, and when you validate a model you cannot let information from the future leak into the past. Almost every rule that makes time series special follows from that one fact.</p>
+<p><strong>Univariate vs.&nbsp;multivariate.</strong> A univariate series tracks one quantity over time (e.g.&nbsp;<code>Urea_Price</code> alone). A multivariate series tracks several aligned on the same time index (all nine columns together). Our file is multivariate, which lets us study each series on its own <em>and</em> the relationships between them.</p>
+<p><strong>The four components.</strong> The classical way to reason about a series is to imagine it as a sum (or product) of parts:</p>
+<ul>
+<li><strong>Trend (T)</strong> — the long-run direction (fertilizer prices drifting up over 30 years).</li>
+<li><strong>Seasonality (S)</strong> — a pattern that repeats over a <em>fixed, known</em> period (a 12-month crop cycle).</li>
+<li><strong>Cyclicity (C)</strong> — longer swings with <em>no fixed</em> period, tied to the economy (boom/bust). Often folded into the trend in practice.</li>
+<li><strong>Residual / noise (R)</strong> — what is left after removing the above; the irregular part.</li>
+</ul>
+<p>We write either an <strong>additive</strong> model, <span class="math inline">\(y_t = T_t + S_t + R_t\)</span>, when the size of the seasonal swing is roughly constant, or a <strong>multiplicative</strong> model, <span class="math inline">\(y_t = T_t \times S_t \times R_t\)</span>, when the swing grows with the level of the series. We will separate these components explicitly in Section 8.</p>
+</section>
+<section id="loading-the-data-and-building-a-proper-time-index" class="level2">
+<h2 class="anchored" data-anchor-id="loading-the-data-and-building-a-proper-time-index">2. Loading the data and building a proper time index</h2>
+<p>Read the raw file first and look at it before doing anything clever.</p>
+<div id="839fbbf5" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T00:01:20.422017Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T00:01:20.421483Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T00:01:20.441434Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T00:01:20.440558Z&quot;}}" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>raw <span class="op">=</span> pd.read_csv(<span class="st">"monthly_price.csv"</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"shape:"</span>, raw.shape)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>raw.head()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>shape: (356, 13)</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="2">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">ID</th>
+<th data-quarto-table-cell-role="th">YEAR</th>
+<th data-quarto-table-cell-role="th">MONTH</th>
+<th data-quarto-table-cell-role="th">TIME</th>
+<th data-quarto-table-cell-role="th">Urea_Price</th>
+<th data-quarto-table-cell-role="th">MP_Price</th>
+<th data-quarto-table-cell-role="th">TSP_Price</th>
+<th data-quarto-table-cell-role="th">Maize_Price</th>
+<th data-quarto-table-cell-role="th">Rice_Price</th>
+<th data-quarto-table-cell-role="th">Wheat_Price</th>
+<th data-quarto-table-cell-role="th">Food_Price_Index</th>
+<th data-quarto-table-cell-role="th">Energy_Price_Index</th>
+<th data-quarto-table-cell-role="th">VIX_Index</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>1</td>
+<td>1992</td>
+<td>Jan</td>
+<td>Jan-92</td>
+<td>122.5</td>
+<td>110.0</td>
+<td>120.0</td>
+<td>109.3</td>
+<td>277.3</td>
+<td>170.0</td>
+<td>55.7</td>
+<td>23.7</td>
+<td>17.7</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>2</td>
+<td>1992</td>
+<td>Feb</td>
+<td>Feb-92</td>
+<td>120.6</td>
+<td>110.0</td>
+<td>120.0</td>
+<td>113.6</td>
+<td>278.3</td>
+<td>177.1</td>
+<td>55.5</td>
+<td>23.8</td>
+<td>17.5</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>3</td>
+<td>1992</td>
+<td>Mar</td>
+<td>Mar-92</td>
+<td>120.0</td>
+<td>110.0</td>
+<td>120.0</td>
+<td>117.0</td>
+<td>277.2</td>
+<td>169.4</td>
+<td>55.6</td>
+<td>23.8</td>
+<td>17.5</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>4</td>
+<td>1992</td>
+<td>Apr</td>
+<td>Apr-92</td>
+<td>120.0</td>
+<td>110.0</td>
+<td>120.2</td>
+<td>108.5</td>
+<td>278.0</td>
+<td>159.9</td>
+<td>54.1</td>
+<td>25.2</td>
+<td>16.6</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>5</td>
+<td>1992</td>
+<td>May</td>
+<td>May-92</td>
+<td>120.0</td>
+<td>110.0</td>
+<td>120.5</td>
+<td>109.6</td>
+<td>274.0</td>
+<td>149.7</td>
+<td>54.2</td>
+<td>26.3</td>
+<td>15.1</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div id="1fa1707f" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T00:01:20.442914Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T00:01:20.442760Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T00:01:20.448431Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T00:01:20.447555Z&quot;}}" data-execution_count="3">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>raw.dtypes</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="3">
+<pre><code>ID                      int64
+YEAR                    int64
+MONTH                     str
+TIME                      str
+Urea_Price            float64
+MP_Price              float64
+TSP_Price             float64
+Maize_Price           float64
+Rice_Price            float64
+Wheat_Price           float64
+Food_Price_Index      float64
+Energy_Price_Index    float64
+VIX_Index             float64
+dtype: object</code></pre>
+</div>
+</div>
+<p>Two things stand out. First, there are <strong>no missing values</strong> (we will confirm this), which is unusual and convenient — so later we will <em>deliberately</em> punch holes in a copy to practise repairing them. Second, there is already a <code>TIME</code> column, but look closely at it:</p>
+<div id="b8bdb645" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T00:01:20.450120Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T00:01:20.449817Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T00:01:20.455012Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T00:01:20.454118Z&quot;}}" data-execution_count="4">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"early TIME values:"</span>, raw[<span class="st">"TIME"</span>].head(<span class="dv">3</span>).tolist())</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"late  TIME values:"</span>, raw[<span class="st">"TIME"</span>].tail(<span class="dv">3</span>).tolist())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>early TIME values: ['Jan-92', 'Feb-92', 'Mar-92']
+late  TIME values: ['21-Jun', '21-Jul', '21-Aug']</code></pre>
+</div>
+</div>
+<p>The format is <strong>inconsistent</strong> — <code>Jan-92</code> early on, <code>21-Apr</code> later. Parsing that string directly is a trap. This is a common real-world lesson: <strong>don’t trust a pre-baked date string; rebuild the index from reliable parts.</strong> The <code>YEAR</code> (integer) and <code>MONTH</code> (three-letter abbreviation) columns are clean, so we construct the timestamp from those instead.</p>
+<div id="9d508000" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T00:01:20.457123Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T00:01:20.456504Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T00:01:20.473839Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T00:01:20.473028Z&quot;}}" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Build a first-of-month timestamp from YEAR + MONTH, which are reliable.</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>dates <span class="op">=</span> pd.to_datetime(</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    raw[<span class="st">"YEAR"</span>].astype(<span class="bu">str</span>) <span class="op">+</span> <span class="st">"-"</span> <span class="op">+</span> raw[<span class="st">"MONTH"</span>],</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    <span class="bu">format</span><span class="op">=</span><span class="st">"%Y-%b"</span>,   <span class="co"># e.g. "1992-Jan"</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> raw.drop(columns<span class="op">=</span>[<span class="st">"ID"</span>, <span class="st">"YEAR"</span>, <span class="st">"MONTH"</span>, <span class="st">"TIME"</span>]).copy()</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>df.index <span class="op">=</span> dates</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>df.index.name <span class="op">=</span> <span class="st">"date"</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Tell pandas the spacing is 'month start' (MS). This is the crucial step.</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> df.asfreq(<span class="st">"MS"</span>)</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>df.head()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="5">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">Urea_Price</th>
+<th data-quarto-table-cell-role="th">MP_Price</th>
+<th data-quarto-table-cell-role="th">TSP_Price</th>
+<th data-quarto-table-cell-role="th">Maize_Price</th>
+<th data-quarto-table-cell-role="th">Rice_Price</th>
+<th data-quarto-table-cell-role="th">Wheat_Price</th>
+<th data-quarto-table-cell-role="th">Food_Price_Index</th>
+<th data-quarto-table-cell-role="th">Energy_Price_Index</th>
+<th data-quarto-table-cell-role="th">VIX_Index</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">date</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">1992-01-01</th>
+<td>122.5</td>
+<td>110.0</td>
+<td>120.0</td>
+<td>109.3</td>
+<td>277.3</td>
+<td>170.0</td>
+<td>55.7</td>
+<td>23.7</td>
+<td>17.7</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1992-02-01</th>
+<td>120.6</td>
+<td>110.0</td>
+<td>120.0</td>
+<td>113.6</td>
+<td>278.3</td>
+<td>177.1</td>
+<td>55.5</td>
+<td>23.8</td>
+<td>17.5</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">1992-03-01</th>
+<td>120.0</td>
+<td>110.0</td>
+<td>120.0</td>
+<td>117.0</td>
+<td>277.2</td>
+<td>169.4</td>
+<td>55.6</td>
+<td>23.8</td>
+<td>17.5</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1992-04-01</th>
+<td>120.0</td>
+<td>110.0</td>
+<td>120.2</td>
+<td>108.5</td>
+<td>278.0</td>
+<td>159.9</td>
+<td>54.1</td>
+<td>25.2</td>
+<td>16.6</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">1992-05-01</th>
+<td>120.0</td>
+<td>110.0</td>
+<td>120.5</td>
+<td>109.6</td>
+<td>274.0</td>
+<td>149.7</td>
+<td>54.2</td>
+<td>26.3</td>
+<td>15.1</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<section id="why-asfreqms-matters" class="level3">
+<h3 class="anchored" data-anchor-id="why-asfreqms-matters">Why <code>asfreq("MS")</code> matters</h3>
+<p>Setting an explicit <strong>frequency</strong> on the index is not cosmetic. It records the <em>contract</em> that observations are spaced one month apart, starting on the first of each month. With a frequency set, pandas and statsmodels can reason about the calendar: they know how many periods a year holds, can generate future dates, and will surface a gap as a missing timestamp rather than silently skipping it.</p>
+<div id="4dd9a0e5" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T00:01:20.475386Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T00:01:20.475228Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T00:01:20.480805Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T00:01:20.479968Z&quot;}}" data-execution_count="6">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"index dtype :"</span>, df.index.dtype)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"frequency    :"</span>, df.index.freq)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"n periods    :"</span>, <span class="bu">len</span>(df))</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"span         :"</span>, df.index.<span class="bu">min</span>().date(), <span class="st">"-&gt;"</span>, df.index.<span class="bu">max</span>().date())</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"is monotonic :"</span>, df.index.is_monotonic_increasing)</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"any missing? :"</span>, df.isna().<span class="bu">any</span>().<span class="bu">any</span>())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>index dtype : datetime64[us]
+frequency    : &lt;MonthBegin&gt;
+n periods    : 356
+span         : 1992-01-01 -&gt; 2021-08-01
+is monotonic : True
+any missing? : False</code></pre>
+</div>
+</div>
+<p>A few useful properties are now available directly off the <code>DatetimeIndex</code>. These <code>.dt</code>-style accessors (here used on the index itself) are the raw material for the calendar features we will engineer in later parts.</p>
+<div id="5b1ee088" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T00:01:20.482599Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T00:01:20.482441Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T00:01:20.490637Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T00:01:20.489820Z&quot;}}" data-execution_count="7">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>idx_info <span class="op">=</span> pd.DataFrame({</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"year"</span>:    df.index.year,</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"month"</span>:   df.index.month,</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"quarter"</span>: df.index.quarter,</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"month_name"</span>: df.index.month_name(),</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>}, index<span class="op">=</span>df.index)</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>idx_info.head()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="7">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">year</th>
+<th data-quarto-table-cell-role="th">month</th>
+<th data-quarto-table-cell-role="th">quarter</th>
+<th data-quarto-table-cell-role="th">month_name</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">date</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">1992-01-01</th>
+<td>1992</td>
+<td>1</td>
+<td>1</td>
+<td>January</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1992-02-01</th>
+<td>1992</td>
+<td>2</td>
+<td>1</td>
+<td>February</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">1992-03-01</th>
+<td>1992</td>
+<td>3</td>
+<td>1</td>
+<td>March</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1992-04-01</th>
+<td>1992</td>
+<td>4</td>
+<td>2</td>
+<td>April</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">1992-05-01</th>
+<td>1992</td>
+<td>5</td>
+<td>2</td>
+<td>May</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</section>
+<section id="a-note-on-time-zones" class="level3">
+<h3 class="anchored" data-anchor-id="a-note-on-time-zones">A note on time zones</h3>
+<p>Our index is <strong>time-zone naive</strong>, and for monthly economic data that is exactly right — a monthly price has no meaningful hour, let alone a UTC offset. Time zones matter when you work with sub-daily data collected across regions (sensor feeds, web logs, market ticks). The mechanics, for reference:</p>
+<div id="0792a368" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T00:01:20.492772Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T00:01:20.492203Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T00:01:20.497906Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T00:01:20.497137Z&quot;}}" data-execution_count="8">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Localize to a zone, then convert — shown for reference only.</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>sample <span class="op">=</span> df.index[:<span class="dv">3</span>]</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>localized <span class="op">=</span> sample.tz_localize(<span class="st">"UTC"</span>)</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>converted <span class="op">=</span> localized.tz_convert(<span class="st">"America/New_York"</span>)</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> a, b <span class="kw">in</span> <span class="bu">zip</span>(localized, converted):</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(a, <span class="st">" -&gt; "</span>, b)</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">Our working index stays tz-naive (correct for monthly data):"</span>, df.index.tz)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>1992-01-01 00:00:00+00:00  -&gt;  1991-12-31 19:00:00-05:00
+1992-02-01 00:00:00+00:00  -&gt;  1992-01-31 19:00:00-05:00
+1992-03-01 00:00:00+00:00  -&gt;  1992-02-29 19:00:00-05:00
+
+Our working index stays tz-naive (correct for monthly data): None</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="selecting-and-slicing-by-time" class="level2">
+<h2 class="anchored" data-anchor-id="selecting-and-slicing-by-time">3. Selecting and slicing by time</h2>
+<p>Once the index is a <code>DatetimeIndex</code>, time-based selection becomes very natural. <strong>Partial-string indexing</strong> lets you name a year or a month and pandas expands it to the full range.</p>
+<div id="21fdc845" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T00:01:20.499633Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T00:01:20.499343Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T00:01:20.510288Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T00:01:20.509412Z&quot;}}" data-execution_count="9">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># One full year</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>df.loc[<span class="st">"2008"</span>].head()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="9">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">Urea_Price</th>
+<th data-quarto-table-cell-role="th">MP_Price</th>
+<th data-quarto-table-cell-role="th">TSP_Price</th>
+<th data-quarto-table-cell-role="th">Maize_Price</th>
+<th data-quarto-table-cell-role="th">Rice_Price</th>
+<th data-quarto-table-cell-role="th">Wheat_Price</th>
+<th data-quarto-table-cell-role="th">Food_Price_Index</th>
+<th data-quarto-table-cell-role="th">Energy_Price_Index</th>
+<th data-quarto-table-cell-role="th">VIX_Index</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">date</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2008-01-01</th>
+<td>376.6</td>
+<td>230.6</td>
+<td>539.2</td>
+<td>206.7</td>
+<td>375.6</td>
+<td>336.1</td>
+<td>106.2</td>
+<td>118.0</td>
+<td>25.8</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">2008-02-01</th>
+<td>328.1</td>
+<td>240.0</td>
+<td>729.4</td>
+<td>220.1</td>
+<td>464.8</td>
+<td>393.9</td>
+<td>116.1</td>
+<td>123.6</td>
+<td>25.5</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2008-03-01</th>
+<td>371.0</td>
+<td>240.0</td>
+<td>875.6</td>
+<td>234.4</td>
+<td>594.0</td>
+<td>403.8</td>
+<td>123.9</td>
+<td>133.3</td>
+<td>27.1</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">2008-04-01</th>
+<td>462.5</td>
+<td>393.0</td>
+<td>1029.0</td>
+<td>246.4</td>
+<td>907.0</td>
+<td>326.9</td>
+<td>127.6</td>
+<td>142.5</td>
+<td>21.6</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2008-05-01</th>
+<td>633.8</td>
+<td>546.0</td>
+<td>1037.0</td>
+<td>243.5</td>
+<td>901.8</td>
+<td>288.4</td>
+<td>127.3</td>
+<td>159.4</td>
+<td>18.3</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div id="3595072e" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T00:01:20.512310Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T00:01:20.511680Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T00:01:20.520142Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T00:01:20.519251Z&quot;}}" data-execution_count="10">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># A closed date range (both endpoints included), a subset of columns</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>df.loc[<span class="st">"2007-06"</span>:<span class="st">"2008-12"</span>, [<span class="st">"Food_Price_Index"</span>, <span class="st">"Energy_Price_Index"</span>]].head()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="10">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">Food_Price_Index</th>
+<th data-quarto-table-cell-role="th">Energy_Price_Index</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">date</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2007-06-01</th>
+<td>81.5</td>
+<td>90.0</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">2007-07-01</th>
+<td>83.4</td>
+<td>94.8</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2007-08-01</th>
+<td>84.7</td>
+<td>91.2</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">2007-09-01</th>
+<td>89.4</td>
+<td>98.3</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2007-10-01</th>
+<td>92.8</td>
+<td>105.4</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div id="890b31eb" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T00:01:20.522094Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T00:01:20.521475Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T00:01:20.529334Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T00:01:20.528492Z&quot;}}" data-execution_count="11">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># A single month</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>df.loc[<span class="st">"2020-04"</span>, [<span class="st">"Maize_Price"</span>, <span class="st">"Rice_Price"</span>, <span class="st">"Wheat_Price"</span>]]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="11">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">Maize_Price</th>
+<th data-quarto-table-cell-role="th">Rice_Price</th>
+<th data-quarto-table-cell-role="th">Wheat_Price</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">date</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2020-04-01</th>
+<td>146.9</td>
+<td>564.0</td>
+<td>179.8</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>Because the index is sorted and typed, these lookups are fast and read almost like English. Contrast that with filtering a plain string column, which forces a full scan and breaks the moment the string format drifts — exactly the problem we sidestepped in Section 2.</p>
+</section>
+<section id="resampling-changing-the-frequency" class="level2">
+<h2 class="anchored" data-anchor-id="resampling-changing-the-frequency">4. Resampling — changing the frequency</h2>
+<p><strong>Resampling</strong> converts a series from one frequency to another. It comes in two directions:</p>
+<ul>
+<li><strong>Downsampling</strong> — to a <em>coarser</em> frequency (monthly → quarterly → yearly). You are combining many periods into one, so you must <strong>aggregate</strong> (mean, sum, last, …).</li>
+<li><strong>Upsampling</strong> — to a <em>finer</em> frequency (monthly → weekly). You are creating new timestamps that have no data yet, so you must <strong>fill or interpolate</strong> them.</li>
+</ul>
+<p>The API is <code>df.resample(rule).aggregation()</code>. The <code>rule</code> uses offset aliases: <code>MS</code> month-start, <code>QE</code> quarter-end, <code>YE</code> year-end, <code>W</code> weekly, <code>D</code> daily.</p>
+<div id="42be5d11" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T00:01:20.530934Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T00:01:20.530781Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T00:01:20.540116Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T00:01:20.539266Z&quot;}}" data-execution_count="12">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Downsample to yearly averages (a smoother view of the trend)</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>yearly <span class="op">=</span> df.resample(<span class="st">"YE"</span>).mean()</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>yearly[[<span class="st">"Urea_Price"</span>, <span class="st">"Food_Price_Index"</span>, <span class="st">"VIX_Index"</span>]].head()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="12">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">Urea_Price</th>
+<th data-quarto-table-cell-role="th">Food_Price_Index</th>
+<th data-quarto-table-cell-role="th">VIX_Index</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">date</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">1992-12-31</th>
+<td>117.608333</td>
+<td>53.875</td>
+<td>15.458333</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1993-12-31</th>
+<td>85.541667</td>
+<td>54.125</td>
+<td>12.691667</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">1994-12-31</th>
+<td>93.883333</td>
+<td>58.150</td>
+<td>13.950000</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1995-12-31</th>
+<td>126.866667</td>
+<td>63.000</td>
+<td>12.391667</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">1996-12-31</th>
+<td>153.691667</td>
+<td>67.975</td>
+<td>16.466667</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>The aggregation you choose encodes a decision about <em>meaning</em>. For a <strong>price</strong>, the yearly <strong>mean</strong> or <strong>last</strong> value is sensible. For a <strong>flow</strong> such as rainfall or sales you would <strong>sum</strong>. For volatility like the VIX you might take the <strong>max</strong> to capture the worst of the year. Resampling is never just mechanical.</p>
+<div id="65ebb26f" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T00:01:20.542185Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T00:01:20.541552Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T00:01:20.553371Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T00:01:20.552490Z&quot;}}" data-execution_count="13">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Different aggregations answer different questions</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>agg <span class="op">=</span> df[<span class="st">"VIX_Index"</span>].resample(<span class="st">"YE"</span>).agg([<span class="st">"mean"</span>, <span class="st">"max"</span>, <span class="st">"min"</span>, <span class="st">"std"</span>]).<span class="bu">round</span>(<span class="dv">1</span>)</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>agg.head()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="13">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">mean</th>
+<th data-quarto-table-cell-role="th">max</th>
+<th data-quarto-table-cell-role="th">min</th>
+<th data-quarto-table-cell-role="th">std</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">date</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">1992-12-31</th>
+<td>15.5</td>
+<td>17.7</td>
+<td>12.2</td>
+<td>1.9</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1993-12-31</th>
+<td>12.7</td>
+<td>14.1</td>
+<td>11.4</td>
+<td>0.9</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">1994-12-31</th>
+<td>14.0</td>
+<td>16.5</td>
+<td>11.3</td>
+<td>1.7</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1995-12-31</th>
+<td>12.4</td>
+<td>14.4</td>
+<td>11.5</td>
+<td>0.7</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">1996-12-31</th>
+<td>16.5</td>
+<td>19.3</td>
+<td>13.5</td>
+<td>1.5</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div id="1ed6fcd6" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T00:01:20.554952Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T00:01:20.554791Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T00:01:20.608190Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T00:01:20.607349Z&quot;}}" data-execution_count="14">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Upsample monthly -&gt; weekly. New weekly slots start empty and must be filled.</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>wk <span class="op">=</span> df[<span class="st">"Food_Price_Index"</span>].resample(<span class="st">"W"</span>).asfreq()   <span class="co"># no fill: creates NaNs</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"weekly slots:"</span>, <span class="bu">len</span>(wk), <span class="st">" of which missing:"</span>, <span class="bu">int</span>(wk.isna().<span class="bu">sum</span>()))</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>wk_ffill  <span class="op">=</span> df[<span class="st">"Food_Price_Index"</span>].resample(<span class="st">"W"</span>).ffill()          <span class="co"># carry last value</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>wk_interp <span class="op">=</span> df[<span class="st">"Food_Price_Index"</span>].resample(<span class="st">"W"</span>).interpolate(<span class="st">"linear"</span>)  <span class="co"># straight line</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>compare <span class="op">=</span> pd.DataFrame({<span class="st">"as_is"</span>: wk, <span class="st">"ffill"</span>: wk_ffill, <span class="st">"interp"</span>: wk_interp})</span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>compare.head(<span class="dv">8</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>weekly slots: 1544  of which missing: 1493</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="14">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">as_is</th>
+<th data-quarto-table-cell-role="th">ffill</th>
+<th data-quarto-table-cell-role="th">interp</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">date</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">1992-01-05</th>
+<td>NaN</td>
+<td>55.7</td>
+<td>55.66</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1992-01-12</th>
+<td>NaN</td>
+<td>55.7</td>
+<td>55.62</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">1992-01-19</th>
+<td>NaN</td>
+<td>55.7</td>
+<td>55.58</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1992-01-26</th>
+<td>NaN</td>
+<td>55.7</td>
+<td>55.54</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">1992-02-02</th>
+<td>NaN</td>
+<td>55.5</td>
+<td>55.52</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1992-02-09</th>
+<td>NaN</td>
+<td>55.5</td>
+<td>55.54</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">1992-02-16</th>
+<td>NaN</td>
+<td>55.5</td>
+<td>55.56</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1992-02-23</th>
+<td>NaN</td>
+<td>55.5</td>
+<td>55.58</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p><code>asfreq()</code> vs <code>resample()</code>: <code>asfreq()</code> just <em>changes the labels</em> and shows you the holes; <code>resample()</code> is the general engine that also aggregates or fills. Use <code>asfreq()</code> when you only want to relabel or expose gaps, <code>resample()</code> for everything else.</p>
+</section>
+<section id="rolling-windows-expanding-windows-and-lags" class="level2">
+<h2 class="anchored" data-anchor-id="rolling-windows-expanding-windows-and-lags">5. Rolling windows, expanding windows, and lags</h2>
+<p>These three operations appear constantly — first as diagnostics, and later (Part 7) as engineered <strong>features</strong> for machine-learning models.</p>
+<ul>
+<li><strong>Rolling window</strong> — a fixed-width window that slides along the series; e.g.&nbsp;a 12-month rolling mean is a smoothed trend.</li>
+<li><strong>Expanding window</strong> — an <em>anchored</em> window that grows to include everything up to the current point; e.g.&nbsp;the cumulative-to-date average.</li>
+<li><strong>Shift / lag</strong> — move the series forward or backward in time; the basis of growth rates and of the lag features every autoregressive model relies on.</li>
+</ul>
+<div id="b56202da" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T00:01:20.609785Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T00:01:20.609636Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T00:01:20.620728Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T00:01:20.619878Z&quot;}}" data-execution_count="15">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>s <span class="op">=</span> df[<span class="st">"Urea_Price"</span>]</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>feat <span class="op">=</span> pd.DataFrame({</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"value"</span>:        s,</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"roll_mean_12"</span>: s.rolling(window<span class="op">=</span><span class="dv">12</span>).mean(),   <span class="co"># 12-month smoothed trend</span></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"roll_std_12"</span>:  s.rolling(window<span class="op">=</span><span class="dv">12</span>).std(),    <span class="co"># rolling volatility</span></span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">"expanding_mean"</span>: s.expanding().mean(),        <span class="co"># cumulative average to date</span></span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>feat.loc[<span class="st">"2007"</span>:<span class="st">"2008"</span>].head(<span class="dv">8</span>).<span class="bu">round</span>(<span class="dv">1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="15">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">value</th>
+<th data-quarto-table-cell-role="th">roll_mean_12</th>
+<th data-quarto-table-cell-role="th">roll_std_12</th>
+<th data-quarto-table-cell-role="th">expanding_mean</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">date</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2007-01-01</th>
+<td>265.0</td>
+<td>227.4</td>
+<td>20.0</td>
+<td>126.7</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">2007-02-01</th>
+<td>299.4</td>
+<td>234.5</td>
+<td>28.3</td>
+<td>127.6</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2007-03-01</th>
+<td>318.1</td>
+<td>240.7</td>
+<td>37.2</td>
+<td>128.7</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">2007-04-01</th>
+<td>291.0</td>
+<td>244.4</td>
+<td>40.0</td>
+<td>129.6</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2007-05-01</th>
+<td>293.1</td>
+<td>249.7</td>
+<td>42.0</td>
+<td>130.4</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">2007-06-01</th>
+<td>291.9</td>
+<td>256.5</td>
+<td>41.6</td>
+<td>131.3</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2007-07-01</th>
+<td>269.5</td>
+<td>261.8</td>
+<td>38.4</td>
+<td>132.0</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">2007-08-01</th>
+<td>260.6</td>
+<td>266.0</td>
+<td>34.9</td>
+<td>132.7</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>Notice the first 11 rolling values would be <code>NaN</code> — a window of 12 cannot be computed until 12 observations exist. That edge effect is expected; the choice is whether to accept the shorter usable series or to <code>min_periods</code> your way around it.</p>
+<p><strong>Shifting</strong> moves data relative to its timestamps. <code>shift(1)</code> pushes values one month into the future (yesterday’s value sitting on today’s row) — precisely what you need to compute change, and precisely the mechanism behind a <em>lag feature</em>.</p>
+<div id="5f507b2b" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T00:01:20.622702Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T00:01:20.622111Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T00:01:20.633323Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T00:01:20.632461Z&quot;}}" data-execution_count="16">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>growth <span class="op">=</span> pd.DataFrame({</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"value"</span>:       s,</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"lag_1"</span>:       s.shift(<span class="dv">1</span>),                 <span class="co"># previous month's value</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"mom_change"</span>:  s.diff(<span class="dv">1</span>),                  <span class="co"># first difference: value - lag_1</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"mom_pct"</span>:     s.pct_change() <span class="op">*</span> <span class="dv">100</span>,       <span class="co"># month-over-month % change</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"yoy_pct"</span>:     s.pct_change(<span class="dv">12</span>) <span class="op">*</span> <span class="dv">100</span>,     <span class="co"># year-over-year % change (seasonal lag)</span></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>growth.loc[<span class="st">"2008-06"</span>:<span class="st">"2008-12"</span>].<span class="bu">round</span>(<span class="dv">2</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="16">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">value</th>
+<th data-quarto-table-cell-role="th">lag_1</th>
+<th data-quarto-table-cell-role="th">mom_change</th>
+<th data-quarto-table-cell-role="th">mom_pct</th>
+<th data-quarto-table-cell-role="th">yoy_pct</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">date</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2008-06-01</th>
+<td>642.0</td>
+<td>633.8</td>
+<td>8.2</td>
+<td>1.29</td>
+<td>119.94</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">2008-07-01</th>
+<td>733.8</td>
+<td>642.0</td>
+<td>91.8</td>
+<td>14.30</td>
+<td>172.28</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2008-08-01</th>
+<td>785.0</td>
+<td>733.8</td>
+<td>51.2</td>
+<td>6.98</td>
+<td>201.23</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">2008-09-01</th>
+<td>744.5</td>
+<td>785.0</td>
+<td>-40.5</td>
+<td>-5.16</td>
+<td>144.10</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2008-10-01</th>
+<td>575.0</td>
+<td>744.5</td>
+<td>-169.5</td>
+<td>-22.77</td>
+<td>77.58</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">2008-11-01</th>
+<td>287.5</td>
+<td>575.0</td>
+<td>-287.5</td>
+<td>-50.00</td>
+<td>-21.51</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2008-12-01</th>
+<td>240.0</td>
+<td>287.5</td>
+<td>-47.5</td>
+<td>-16.52</td>
+<td>-40.25</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p><strong>Differencing</strong> (<code>.diff()</code>) — subtracting the previous value — is worth flagging now because it returns in Part 2 as the standard tool for removing a trend and making a series <em>stationary</em>. Here it simply gives month-over-month change; there it becomes a modelling step.</p>
+</section>
+<section id="missing-timestamps-gaps-and-interpolation" class="level2">
+<h2 class="anchored" data-anchor-id="missing-timestamps-gaps-and-interpolation">6. Missing timestamps, gaps, and interpolation</h2>
+<p>Real series arrive with holes: a sensor drops out, a month goes unreported, a source changes format. There are two very different kinds of “missing”:</p>
+<ol type="1">
+<li><strong>A missing <em>value</em></strong> — the timestamp exists in the index but the number is <code>NaN</code>.</li>
+<li><strong>A missing <em>timestamp</em></strong> — an entire period is absent from the index, so nothing even signals that it is gone.</li>
+</ol>
+<p>The second is the dangerous one, because naive code steps right over it. A frequency-aware index is your defence. Our data is complete, so to <em>practise</em> we first create a damaged copy.</p>
+<div id="3ff51ae1" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T00:01:20.635429Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T00:01:20.634774Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T00:01:20.641719Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T00:01:20.640898Z&quot;}}" data-execution_count="17">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Make a damaged copy: drop three specific months entirely (missing timestamps)</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="co"># and blank out a couple of values (missing values).</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>damaged <span class="op">=</span> df[<span class="st">"Food_Price_Index"</span>].copy()</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>drop_months <span class="op">=</span> pd.to_datetime([<span class="st">"2010-03-01"</span>, <span class="st">"2010-04-01"</span>, <span class="st">"2015-08-01"</span>])</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>damaged <span class="op">=</span> damaged.drop(index<span class="op">=</span>drop_months)          <span class="co"># remove timestamps</span></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>damaged.loc[<span class="st">"2012-07-01"</span>] <span class="op">=</span> np.nan                 <span class="co"># blank a value</span></span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>damaged.loc[<span class="st">"2018-11-01"</span>] <span class="op">=</span> np.nan</span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"original length:"</span>, <span class="bu">len</span>(df), <span class="st">" damaged length:"</span>, <span class="bu">len</span>(damaged))</span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"damaged freq   :"</span>, damaged.index.freq, <span class="st">"  &lt;- lost, because rows were dropped"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>original length: 356  damaged length: 353
+damaged freq   : None   &lt;- lost, because rows were dropped</code></pre>
+</div>
+</div>
+<p>Dropping rows silently destroyed the frequency. The fix is to <strong>reindex onto the complete expected calendar</strong>, which re-inserts the absent months as explicit <code>NaN</code>s — turning invisible missing <em>timestamps</em> into visible missing <em>values</em> we can then treat.</p>
+<div id="00bb6b23" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T00:01:20.643265Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T00:01:20.643101Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T00:01:20.650982Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T00:01:20.650233Z&quot;}}" data-execution_count="18">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>full_index <span class="op">=</span> pd.date_range(damaged.index.<span class="bu">min</span>(),</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>                           damaged.index.<span class="bu">max</span>(), freq<span class="op">=</span><span class="st">"MS"</span>)</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>restored <span class="op">=</span> damaged.reindex(full_index)</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>restored.index.name <span class="op">=</span> <span class="st">"date"</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>missing <span class="op">=</span> restored[restored.isna()]</span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"re-inserted / blank periods now visible:"</span>)</span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(missing)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>re-inserted / blank periods now visible:
+date
+2010-03-01   NaN
+2010-04-01   NaN
+2012-07-01   NaN
+2015-08-01   NaN
+2018-11-01   NaN
+Name: Food_Price_Index, dtype: float64</code></pre>
+</div>
+</div>
+<p>With the gaps exposed as <code>NaN</code>, we can choose how to fill them. The options are not interchangeable — each encodes an assumption:</p>
+<ul>
+<li><strong><code>ffill</code> / <code>bfill</code></strong> — carry the last (or next) known value. Assumes the series holds flat between observations. Fine for slow, step-like data; wrong for anything trending.</li>
+<li><strong><code>interpolate("linear")</code></strong> — draw a straight line across the gap by position.</li>
+<li><strong><code>interpolate("time")</code></strong> — like linear but weighted by the actual <em>time</em> distance, so it respects uneven gaps. Usually the right default for a time-indexed series.</li>
+<li><strong><code>interpolate("spline"/"polynomial")</code></strong> — smooth curves; powerful but can overshoot, so use with care.</li>
+</ul>
+<div id="9794e017" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T00:01:20.652664Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T00:01:20.652515Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T00:01:20.662465Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T00:01:20.661643Z&quot;}}" data-execution_count="19">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>filled <span class="op">=</span> pd.DataFrame({</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"damaged"</span>:  restored,</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"ffill"</span>:    restored.ffill(),</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"linear"</span>:   restored.interpolate(<span class="st">"linear"</span>),</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"time"</span>:     restored.interpolate(<span class="st">"time"</span>),</span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Show the neighbourhood of the first dropped gap (2010-03 / 2010-04)</span></span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>filled.loc[<span class="st">"2010-01"</span>:<span class="st">"2010-06"</span>].<span class="bu">round</span>(<span class="dv">2</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="19">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">damaged</th>
+<th data-quarto-table-cell-role="th">ffill</th>
+<th data-quarto-table-cell-role="th">linear</th>
+<th data-quarto-table-cell-role="th">time</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">date</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2010-01-01</th>
+<td>98.5</td>
+<td>98.5</td>
+<td>98.50</td>
+<td>98.50</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">2010-02-01</th>
+<td>95.4</td>
+<td>95.4</td>
+<td>95.40</td>
+<td>95.40</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2010-03-01</th>
+<td>NaN</td>
+<td>95.4</td>
+<td>93.73</td>
+<td>93.83</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">2010-04-01</th>
+<td>NaN</td>
+<td>95.4</td>
+<td>92.07</td>
+<td>92.09</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2010-05-01</th>
+<td>90.4</td>
+<td>90.4</td>
+<td>90.40</td>
+<td>90.40</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">2010-06-01</th>
+<td>89.1</td>
+<td>89.1</td>
+<td>89.10</td>
+<td>89.10</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>Let’s <em>see</em> the difference the method makes across that gap.</p>
+<div id="fbf04873" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T00:01:20.663985Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T00:01:20.663827Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T00:01:20.825374Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T00:01:20.824487Z&quot;}}" data-execution_count="20">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots()</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>window <span class="op">=</span> <span class="bu">slice</span>(<span class="st">"2009-09"</span>, <span class="st">"2010-10"</span>)</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>ax.plot(filled.loc[window, <span class="st">"time"</span>],  color<span class="op">=</span>PALETTE[<span class="dv">2</span>], lw<span class="op">=</span><span class="fl">2.4</span>,</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>        label<span class="op">=</span><span class="st">"interpolate('time')"</span>, zorder<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>ax.plot(filled.loc[window, <span class="st">"ffill"</span>], color<span class="op">=</span>PALETTE[<span class="dv">1</span>], lw<span class="op">=</span><span class="fl">1.6</span>, ls<span class="op">=</span><span class="st">"--"</span>,</span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>        label<span class="op">=</span><span class="st">"ffill"</span>, zorder<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>ax.plot(filled.loc[window, <span class="st">"damaged"</span>], color<span class="op">=</span>PALETTE[<span class="dv">0</span>], marker<span class="op">=</span><span class="st">"o"</span>, ms<span class="op">=</span><span class="dv">5</span>,</span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>        lw<span class="op">=</span><span class="fl">1.2</span>, label<span class="op">=</span><span class="st">"observed"</span>, zorder<span class="op">=</span><span class="dv">3</span>)</span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"Filling a gap: 'time' interpolation vs forward-fill"</span>)</span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">"Food Price Index"</span>)</span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>ax.legend(frameon<span class="op">=</span><span class="va">False</span>, ncol<span class="op">=</span><span class="dv">3</span>)</span>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()<span class="op">;</span> plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="part-01-foundations_files/figure-html/cell-21-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Forward-fill produces a flat shelf across March–April 2010; time interpolation bridges the gap along the local trend. Neither <em>recovers</em> the truth — the honest takeaway is that <strong>imputation is an assumption, and you should record which one you made</strong> rather than pretend the gap was never there.</p>
+<blockquote class="blockquote">
+<p><strong>Irregular sampling.</strong> Some series aren’t merely missing a period here and there — they’re recorded at genuinely uneven times (event logs, clinical visits). The same reindex-then-interpolate pattern applies: build the regular grid you <em>want</em>, reindex onto it, interpolate by <code>"time"</code>. From here on we return to the complete original <code>df</code>.</p>
+</blockquote>
+</section>
+<section id="visualization-the-diagnostic-toolkit" class="level2">
+<h2 class="anchored" data-anchor-id="visualization-the-diagnostic-toolkit">7. Visualization — the diagnostic toolkit</h2>
+<p>Before any modelling, <em>look at the data</em>. A handful of standard plots answers the questions that decide everything downstream: is there a trend? a seasonal cycle? changing variance? outliers or breaks?</p>
+<section id="line-plots-the-first-look" class="level3">
+<h3 class="anchored" data-anchor-id="line-plots-the-first-look">7.1 Line plots — the first look</h3>
+<p>Plotting raw prices together is misleading because the series live on different scales (TSP peaks above 1100; the VIX sits near 20). Two honest fixes: give a couple of series their own axis, or <strong>index everything to a common base</strong> so you compare <em>relative</em> movement.</p>
+<div id="042b8a4b" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T00:01:20.827534Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T00:01:20.826874Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T00:01:21.236534Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T00:01:21.235540Z&quot;}}" data-execution_count="21">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>fig, (ax1, ax2) <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">1</span>, figsize<span class="op">=</span>(<span class="dv">11</span>, <span class="dv">7</span>), sharex<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Top: fertilizers on the left axis, VIX on a twin right axis</span></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> col, c <span class="kw">in</span> <span class="bu">zip</span>([<span class="st">"Urea_Price"</span>, <span class="st">"MP_Price"</span>, <span class="st">"TSP_Price"</span>], PALETTE):</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>    ax1.plot(df.index, df[col], color<span class="op">=</span>c, label<span class="op">=</span>col)</span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>ax1.set_ylabel(<span class="st">"Fertilizer price (US$/t)"</span>)</span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>ax1.set_title(<span class="st">"Fertilizer prices, with market volatility (VIX) overlaid"</span>)</span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a>axb <span class="op">=</span> ax1.twinx()</span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a>axb.plot(df.index, df[<span class="st">"VIX_Index"</span>], color<span class="op">=</span>PALETTE[<span class="dv">5</span>], alpha<span class="op">=</span><span class="fl">0.5</span>, lw<span class="op">=</span><span class="fl">1.1</span>, label<span class="op">=</span><span class="st">"VIX"</span>)</span>
+<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a>axb.set_ylabel(<span class="st">"VIX"</span>)<span class="op">;</span> axb.grid(<span class="va">False</span>)</span>
+<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a>l1, la1 <span class="op">=</span> ax1.get_legend_handles_labels()<span class="op">;</span> l2, la2 <span class="op">=</span> axb.get_legend_handles_labels()</span>
+<span id="cb30-12"><a href="#cb30-12" aria-hidden="true" tabindex="-1"></a>ax1.legend(l1 <span class="op">+</span> l2, la1 <span class="op">+</span> la2, frameon<span class="op">=</span><span class="va">False</span>, ncol<span class="op">=</span><span class="dv">4</span>, loc<span class="op">=</span><span class="st">"upper left"</span>)</span>
+<span id="cb30-13"><a href="#cb30-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-14"><a href="#cb30-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Bottom: everything rebased to 100 at the series start (relative comparison)</span></span>
+<span id="cb30-15"><a href="#cb30-15" aria-hidden="true" tabindex="-1"></a>rebased <span class="op">=</span> df <span class="op">/</span> df.iloc[<span class="dv">0</span>] <span class="op">*</span> <span class="dv">100</span></span>
+<span id="cb30-16"><a href="#cb30-16" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> col, c <span class="kw">in</span> <span class="bu">zip</span>([<span class="st">"Urea_Price"</span>, <span class="st">"Maize_Price"</span>, <span class="st">"Rice_Price"</span>,</span>
+<span id="cb30-17"><a href="#cb30-17" aria-hidden="true" tabindex="-1"></a>                   <span class="st">"Food_Price_Index"</span>, <span class="st">"Energy_Price_Index"</span>], PALETTE):</span>
+<span id="cb30-18"><a href="#cb30-18" aria-hidden="true" tabindex="-1"></a>    ax2.plot(rebased.index, rebased[col], color<span class="op">=</span>c, label<span class="op">=</span>col)</span>
+<span id="cb30-19"><a href="#cb30-19" aria-hidden="true" tabindex="-1"></a>ax2.axhline(<span class="dv">100</span>, color<span class="op">=</span><span class="st">"k"</span>, lw<span class="op">=</span><span class="fl">0.8</span>, ls<span class="op">=</span><span class="st">":"</span>)</span>
+<span id="cb30-20"><a href="#cb30-20" aria-hidden="true" tabindex="-1"></a>ax2.set_ylabel(<span class="st">"Index (Jan 1992 = 100)"</span>)</span>
+<span id="cb30-21"><a href="#cb30-21" aria-hidden="true" tabindex="-1"></a>ax2.set_title(<span class="st">"Same series rebased to a common start — relative growth"</span>)</span>
+<span id="cb30-22"><a href="#cb30-22" aria-hidden="true" tabindex="-1"></a>ax2.legend(frameon<span class="op">=</span><span class="va">False</span>, ncol<span class="op">=</span><span class="dv">5</span>, loc<span class="op">=</span><span class="st">"upper left"</span>)</span>
+<span id="cb30-23"><a href="#cb30-23" aria-hidden="true" tabindex="-1"></a>ax2.xaxis.set_major_locator(mdates.YearLocator(<span class="dv">3</span>))</span>
+<span id="cb30-24"><a href="#cb30-24" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()<span class="op">;</span> plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="part-01-foundations_files/figure-html/cell-22-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Already the structure is visible: a broad upswing into the <strong>2008</strong> commodity spike, the VIX spiking in the <strong>2008 financial crisis</strong>, and a sharp move at the right edge in <strong>2020–21</strong>. These are <em>cyclical</em> macro events, not fixed seasonal ones — the distinction from Section 1 made concrete.</p>
+</section>
+<section id="seasonal-plot-is-there-a-within-year-cycle" class="level3">
+<h3 class="anchored" data-anchor-id="seasonal-plot-is-there-a-within-year-cycle">7.2 Seasonal plot — is there a within-year cycle?</h3>
+<p>To see <strong>seasonality</strong>, overlay each year as its own line across the twelve months. If the lines share a shape, there is a repeating annual pattern; if they are just stacked at different heights, the variation is trend, not season.</p>
+<div id="954a1935" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T00:01:21.238486Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T00:01:21.238193Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T00:01:21.433695Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T00:01:21.432724Z&quot;}}" data-execution_count="22">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>crop <span class="op">=</span> df[<span class="st">"Maize_Price"</span>]</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>piv <span class="op">=</span> pd.DataFrame({</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"year"</span>:  crop.index.year,</span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"month"</span>: crop.index.month,</span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"value"</span>: crop.values,</span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>}).pivot(index<span class="op">=</span><span class="st">"month"</span>, columns<span class="op">=</span><span class="st">"year"</span>, values<span class="op">=</span><span class="st">"value"</span>)</span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">11</span>, <span class="fl">4.6</span>))</span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>years <span class="op">=</span> piv.columns</span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a>cmap <span class="op">=</span> plt.cm.viridis(np.linspace(<span class="dv">0</span>, <span class="dv">1</span>, <span class="bu">len</span>(years)))</span>
+<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> c, yr <span class="kw">in</span> <span class="bu">zip</span>(cmap, years):</span>
+<span id="cb31-12"><a href="#cb31-12" aria-hidden="true" tabindex="-1"></a>    ax.plot(piv.index, piv[yr], color<span class="op">=</span>c, lw<span class="op">=</span><span class="fl">1.1</span>, alpha<span class="op">=</span><span class="fl">0.7</span>)</span>
+<span id="cb31-13"><a href="#cb31-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Emphasise a crisis year and a calm year</span></span>
+<span id="cb31-14"><a href="#cb31-14" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> yr, col, lw <span class="kw">in</span> [(<span class="dv">2008</span>, <span class="st">"#c0392b"</span>, <span class="fl">2.6</span>), (<span class="dv">2000</span>, <span class="st">"#2c3e50"</span>, <span class="fl">2.6</span>)]:</span>
+<span id="cb31-15"><a href="#cb31-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> yr <span class="kw">in</span> piv.columns:</span>
+<span id="cb31-16"><a href="#cb31-16" aria-hidden="true" tabindex="-1"></a>        ax.plot(piv.index, piv[yr], color<span class="op">=</span>col, lw<span class="op">=</span>lw, label<span class="op">=</span><span class="bu">str</span>(yr))</span>
+<span id="cb31-17"><a href="#cb31-17" aria-hidden="true" tabindex="-1"></a>ax.set_xticks(<span class="bu">range</span>(<span class="dv">1</span>, <span class="dv">13</span>))</span>
+<span id="cb31-18"><a href="#cb31-18" aria-hidden="true" tabindex="-1"></a>ax.set_xticklabels([<span class="st">"Jan"</span>,<span class="st">"Feb"</span>,<span class="st">"Mar"</span>,<span class="st">"Apr"</span>,<span class="st">"May"</span>,<span class="st">"Jun"</span>,</span>
+<span id="cb31-19"><a href="#cb31-19" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"Jul"</span>,<span class="st">"Aug"</span>,<span class="st">"Sep"</span>,<span class="st">"Oct"</span>,<span class="st">"Nov"</span>,<span class="st">"Dec"</span>])</span>
+<span id="cb31-20"><a href="#cb31-20" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"Seasonal plot — Maize price, one line per year"</span>)</span>
+<span id="cb31-21"><a href="#cb31-21" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">"Maize price"</span>)<span class="op">;</span> ax.legend(frameon<span class="op">=</span><span class="va">False</span>, title<span class="op">=</span><span class="st">"highlighted"</span>)</span>
+<span id="cb31-22"><a href="#cb31-22" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()<span class="op">;</span> plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="part-01-foundations_files/figure-html/cell-23-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The lines are separated mostly by <em>level</em> (that’s trend, and the 2008 spike stands far above the rest), while the within-year shape is comparatively muted — maize here is trend-dominated with only modest seasonality. That is a genuine finding: not every series has a strong season, and the seasonal plot is how you check rather than assume.</p>
+</section>
+<section id="seasonal-subseries-month-wise-plot" class="level3">
+<h3 class="anchored" data-anchor-id="seasonal-subseries-month-wise-plot">7.3 Seasonal-subseries (month-wise) plot</h3>
+<p>A complementary view: group all observations by calendar month and show each month’s distribution. Flat month-to-month means little seasonality; a systematic up-and-down across months means a seasonal cycle.</p>
+<div id="10561e1a" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T00:01:21.435407Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T00:01:21.435233Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T00:01:21.612025Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T00:01:21.611113Z&quot;}}" data-execution_count="23">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>by_month <span class="op">=</span> [crop[crop.index.month <span class="op">==</span> m].values <span class="cf">for</span> m <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>, <span class="dv">13</span>)]</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">11</span>, <span class="fl">4.4</span>))</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>bp <span class="op">=</span> ax.boxplot(by_month, tick_labels<span class="op">=</span>[<span class="st">"Jan"</span>,<span class="st">"Feb"</span>,<span class="st">"Mar"</span>,<span class="st">"Apr"</span>,<span class="st">"May"</span>,<span class="st">"Jun"</span>,</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>                                       <span class="st">"Jul"</span>,<span class="st">"Aug"</span>,<span class="st">"Sep"</span>,<span class="st">"Oct"</span>,<span class="st">"Nov"</span>,<span class="st">"Dec"</span>],</span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>                patch_artist<span class="op">=</span><span class="va">True</span>, medianprops<span class="op">=</span><span class="bu">dict</span>(color<span class="op">=</span><span class="st">"black"</span>))</span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> patch <span class="kw">in</span> bp[<span class="st">"boxes"</span>]:</span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>    patch.set_facecolor(PALETTE[<span class="dv">0</span>])<span class="op">;</span> patch.set_alpha(<span class="fl">0.45</span>)</span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>monthly_means <span class="op">=</span> [np.mean(v) <span class="cf">for</span> v <span class="kw">in</span> by_month]</span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>ax.plot(<span class="bu">range</span>(<span class="dv">1</span>, <span class="dv">13</span>), monthly_means, color<span class="op">=</span><span class="st">"#c0392b"</span>, marker<span class="op">=</span><span class="st">"o"</span>, lw<span class="op">=</span><span class="dv">2</span>, label<span class="op">=</span><span class="st">"month mean"</span>)</span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"Month-wise distribution of Maize price (1992–2021)"</span>)</span>
+<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">"Maize price"</span>)<span class="op">;</span> ax.legend(frameon<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()<span class="op">;</span> plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="part-01-foundations_files/figure-html/cell-24-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="lag-plot-and-autocorrelation-a-teaser-for-part-2" class="level3">
+<h3 class="anchored" data-anchor-id="lag-plot-and-autocorrelation-a-teaser-for-part-2">7.4 Lag plot and autocorrelation — a teaser for Part 2</h3>
+<p>A <strong>lag plot</strong> scatters each value against the value <span class="math inline">\(k\)</span> steps earlier. A tight diagonal cloud means the series is highly <em>autocorrelated</em> — the present is strongly predictable from the recent past, which is what makes forecasting possible at all. This previews <strong>autocorrelation (ACF)</strong>, the backbone of Part 2.</p>
+<div id="7239a8fe" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T00:01:21.614276Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T00:01:21.613572Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T00:01:22.006168Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T00:01:22.005249Z&quot;}}" data-execution_count="24">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">3</span>, figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">4</span>))</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> ax, k <span class="kw">in</span> <span class="bu">zip</span>(axes, [<span class="dv">1</span>, <span class="dv">6</span>, <span class="dv">12</span>]):</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>    ax.scatter(s.shift(k), s, s<span class="op">=</span><span class="dv">10</span>, alpha<span class="op">=</span><span class="fl">0.4</span>, color<span class="op">=</span>PALETTE[<span class="dv">0</span>])</span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>    ax.set_xlabel(<span class="ss">f"Urea price at t-</span><span class="sc">{</span>k<span class="sc">}</span><span class="ss">"</span>)<span class="op">;</span> ax.set_ylabel(<span class="st">"Urea price at t"</span>)</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>    ax.set_title(<span class="ss">f"Lag </span><span class="sc">{</span>k<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>    lo, hi <span class="op">=</span> s.<span class="bu">min</span>(), s.<span class="bu">max</span>()</span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>    ax.plot([lo, hi], [lo, hi], color<span class="op">=</span><span class="st">"#c0392b"</span>, lw<span class="op">=</span><span class="dv">1</span>, ls<span class="op">=</span><span class="st">"--"</span>)</span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>plt.suptitle(<span class="st">"Lag plots — autocorrelation weakens as the lag grows"</span>,</span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>             fontweight<span class="op">=</span><span class="st">"bold"</span>, y<span class="op">=</span><span class="fl">1.03</span>)</span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()<span class="op">;</span> plt.show()</span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a><span class="co"># The same idea as a single number at each lag</span></span>
+<span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a>acf_vals <span class="op">=</span> [s.autocorr(lag<span class="op">=</span>k) <span class="cf">for</span> k <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">0</span>, <span class="dv">25</span>)]</span>
+<span id="cb33-14"><a href="#cb33-14" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">11</span>, <span class="fl">3.4</span>))</span>
+<span id="cb33-15"><a href="#cb33-15" aria-hidden="true" tabindex="-1"></a>ax.bar(<span class="bu">range</span>(<span class="dv">0</span>, <span class="dv">25</span>), acf_vals, color<span class="op">=</span>PALETTE[<span class="dv">0</span>], alpha<span class="op">=</span><span class="fl">0.8</span>)</span>
+<span id="cb33-16"><a href="#cb33-16" aria-hidden="true" tabindex="-1"></a>ax.axhline(<span class="dv">0</span>, color<span class="op">=</span><span class="st">"k"</span>, lw<span class="op">=</span><span class="fl">0.8</span>)</span>
+<span id="cb33-17"><a href="#cb33-17" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"Autocorrelation of Urea price by lag (preview of Part 2)"</span>)</span>
+<span id="cb33-18"><a href="#cb33-18" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">"lag (months)"</span>)<span class="op">;</span> ax.set_ylabel(<span class="st">"correlation"</span>)</span>
+<span id="cb33-19"><a href="#cb33-19" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()<span class="op">;</span> plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="part-01-foundations_files/figure-html/cell-25-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="part-01-foundations_files/figure-html/cell-25-output-2.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="calendar-heatmap-year-month-at-a-glance" class="level3">
+<h3 class="anchored" data-anchor-id="calendar-heatmap-year-month-at-a-glance">7.5 Calendar heatmap — year × month at a glance</h3>
+<p>A heatmap of year (rows) against month (columns) compresses the whole series into one grid. Horizontal bands reveal trend (whole rows getting hotter over the years); vertical structure would reveal seasonality (columns standing out).</p>
+<div id="89bf4372" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T00:01:22.008091Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T00:01:22.007755Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T00:01:22.379766Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T00:01:22.378625Z&quot;}}" data-execution_count="25">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>fpi <span class="op">=</span> df[<span class="st">"Food_Price_Index"</span>]</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>grid <span class="op">=</span> pd.DataFrame({</span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"year"</span>:  fpi.index.year,</span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"month"</span>: fpi.index.month,</span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"value"</span>: fpi.values,</span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>}).pivot(index<span class="op">=</span><span class="st">"year"</span>, columns<span class="op">=</span><span class="st">"month"</span>, values<span class="op">=</span><span class="st">"value"</span>)</span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">9</span>, <span class="dv">8</span>))</span>
+<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a>im <span class="op">=</span> ax.imshow(grid.values, aspect<span class="op">=</span><span class="st">"auto"</span>, cmap<span class="op">=</span><span class="st">"YlOrRd"</span>, origin<span class="op">=</span><span class="st">"upper"</span>)</span>
+<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a>ax.set_xticks(<span class="bu">range</span>(<span class="dv">12</span>))<span class="op">;</span> ax.set_xticklabels(</span>
+<span id="cb34-11"><a href="#cb34-11" aria-hidden="true" tabindex="-1"></a>    [<span class="st">"Jan"</span>,<span class="st">"Feb"</span>,<span class="st">"Mar"</span>,<span class="st">"Apr"</span>,<span class="st">"May"</span>,<span class="st">"Jun"</span>,<span class="st">"Jul"</span>,<span class="st">"Aug"</span>,<span class="st">"Sep"</span>,<span class="st">"Oct"</span>,<span class="st">"Nov"</span>,<span class="st">"Dec"</span>])</span>
+<span id="cb34-12"><a href="#cb34-12" aria-hidden="true" tabindex="-1"></a>ax.set_yticks(<span class="bu">range</span>(<span class="bu">len</span>(grid.index)))<span class="op">;</span> ax.set_yticklabels(grid.index, fontsize<span class="op">=</span><span class="dv">8</span>)</span>
+<span id="cb34-13"><a href="#cb34-13" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"Food Price Index — calendar heatmap"</span>)</span>
+<span id="cb34-14"><a href="#cb34-14" aria-hidden="true" tabindex="-1"></a>cb <span class="op">=</span> fig.colorbar(im, ax<span class="op">=</span>ax, shrink<span class="op">=</span><span class="fl">0.6</span>)<span class="op">;</span> cb.set_label(<span class="st">"Food Price Index"</span>)</span>
+<span id="cb34-15"><a href="#cb34-15" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()<span class="op">;</span> plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="part-01-foundations_files/figure-html/cell-26-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The rows warm up dramatically around 2008 and again at the bottom (2020–21) — the trend and the shocks jump out — while the columns are fairly uniform, confirming the Food Price Index is driven by trend and macro cycles far more than by month-of-year.</p>
+</section>
+</section>
+<section id="making-the-components-concrete-stl-decomposition" class="level2">
+<h2 class="anchored" data-anchor-id="making-the-components-concrete-stl-decomposition">8. Making the components concrete — STL decomposition</h2>
+<p>Section 1 described the trend / seasonal / residual split conceptually. <strong>STL</strong> (Seasonal-Trend decomposition using Loess) performs it numerically: it estimates a smooth trend, a repeating seasonal component of a period you specify (12 for monthly data), and leaves the residual. This is the one place in Part 1 we call <code>statsmodels</code>, and it ties the whole notebook together — index, frequency, and components in a single picture.</p>
+<div id="7093ce0a" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T00:01:22.381938Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T00:01:22.381627Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T00:01:23.727468Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T00:01:23.726456Z&quot;}}" data-execution_count="26">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> statsmodels.tsa.seasonal <span class="im">import</span> STL</span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>series <span class="op">=</span> df[<span class="st">"Rice_Price"</span>]            <span class="co"># a crop series with visible structure</span></span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>stl <span class="op">=</span> STL(series, period<span class="op">=</span><span class="dv">12</span>, robust<span class="op">=</span><span class="va">True</span>).fit()</span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">4</span>, <span class="dv">1</span>, figsize<span class="op">=</span>(<span class="dv">11</span>, <span class="dv">9</span>), sharex<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].plot(series.index, series.values, color<span class="op">=</span>PALETTE[<span class="dv">0</span>])<span class="op">;</span> axes[<span class="dv">0</span>].set_ylabel(<span class="st">"observed"</span>)</span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_title(<span class="st">"STL decomposition of Rice price (period = 12 months)"</span>)</span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].plot(stl.trend.index, stl.trend.values, color<span class="op">=</span>PALETTE[<span class="dv">2</span>])<span class="op">;</span> axes[<span class="dv">1</span>].set_ylabel(<span class="st">"trend"</span>)</span>
+<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">2</span>].plot(stl.seasonal.index, stl.seasonal.values, color<span class="op">=</span>PALETTE[<span class="dv">3</span>])<span class="op">;</span> axes[<span class="dv">2</span>].set_ylabel(<span class="st">"seasonal"</span>)</span>
+<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">3</span>].plot(stl.resid.index, stl.resid.values, color<span class="op">=</span>PALETTE[<span class="dv">5</span>], lw<span class="op">=</span><span class="fl">0.9</span>)</span>
+<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">3</span>].axhline(<span class="dv">0</span>, color<span class="op">=</span><span class="st">"k"</span>, lw<span class="op">=</span><span class="fl">0.8</span>)<span class="op">;</span> axes[<span class="dv">3</span>].set_ylabel(<span class="st">"residual"</span>)</span>
+<span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">3</span>].xaxis.set_major_locator(mdates.YearLocator(<span class="dv">3</span>))</span>
+<span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()<span class="op">;</span> plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="part-01-foundations_files/figure-html/cell-27-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Read it top to bottom: the <strong>observed</strong> series equals <strong>trend + seasonal + residual</strong>. The trend carries the long climb and the 2008 spike; the seasonal panel is a clean repeating 12-month wave (small in amplitude — rice seasonality is real but modest); the residual is what no simple structure explains, and it visibly swells during turbulent periods. We can quantify how much each component matters via the <strong>strength</strong> measures introduced by Hyndman.</p>
+<div id="dd60e1df" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T00:01:23.729403Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T00:01:23.729151Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T00:01:23.735512Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T00:01:23.734572Z&quot;}}" data-execution_count="27">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb36"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>var_resid    <span class="op">=</span> np.var(stl.resid)</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>strength_trend    <span class="op">=</span> <span class="bu">max</span>(<span class="dv">0</span>, <span class="dv">1</span> <span class="op">-</span> var_resid <span class="op">/</span> np.var(stl.trend <span class="op">+</span> stl.resid))</span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>strength_seasonal <span class="op">=</span> <span class="bu">max</span>(<span class="dv">0</span>, <span class="dv">1</span> <span class="op">-</span> var_resid <span class="op">/</span> np.var(stl.seasonal <span class="op">+</span> stl.resid))</span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Trend strength    : </span><span class="sc">{</span>strength_trend<span class="sc">:0.3f}</span><span class="ss">   (1 = strong trend)"</span>)</span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Seasonal strength : </span><span class="sc">{</span>strength_seasonal<span class="sc">:0.3f}</span><span class="ss">   (1 = strong seasonality)"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Trend strength    : 0.853   (1 = strong trend)
+Seasonal strength : 0.021   (1 = strong seasonality)</code></pre>
+</div>
+</div>
+<p>A high trend strength and a much lower seasonal strength is the numerical signature of exactly what every plot in Section 7 suggested: these commodity series are <strong>trend- and cycle-driven, with light seasonality</strong>. Knowing that shapes which models we reach for later — it tells us, for instance, that seasonal differencing will matter less here than trend handling.</p>
+</section>
+<section id="exercises" class="level2">
+<h2 class="anchored" data-anchor-id="exercises">9. Exercises</h2>
+<p>Work these against the same <code>df</code>. Solutions to the first are given; the rest are left for practice.</p>
+<ol type="1">
+<li><strong>Resampling &amp; meaning.</strong> Build a table of <strong>quarterly</strong> <code>Wheat_Price</code> using three aggregations — mean, min, max — and identify the quarter with the single highest max.</li>
+<li><strong>Rolling volatility.</strong> Compute the 12-month rolling standard deviation of <code>Energy_Price_Index</code> and plot it. In which years is energy most volatile?</li>
+<li><strong>Gap repair.</strong> Drop the year 2014 from <code>Urea_Price</code>, reindex to restore the monthly grid, then compare <code>ffill</code> against <code>interpolate("time")</code> visually.</li>
+<li><strong>Seasonality hunt.</strong> Produce a seasonal-subseries (month-wise) plot for <code>Rice_Price</code>. Does it show more or less seasonality than maize did?</li>
+<li><strong>Relationships.</strong> Rebase <code>Energy_Price_Index</code> and <code>Food_Price_Index</code> to 100 at their start and plot together. Describe how energy shocks appear to lead food prices — a hypothesis we can test formally in later parts.</li>
+</ol>
+<div id="b57a4f2c" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T00:01:23.738091Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T00:01:23.737318Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T00:01:23.753768Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T00:01:23.752814Z&quot;}}" data-execution_count="28">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb38"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Solution to Exercise 1 ---</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>q <span class="op">=</span> df[<span class="st">"Wheat_Price"</span>].resample(<span class="st">"QE"</span>).agg([<span class="st">"mean"</span>, <span class="st">"min"</span>, <span class="st">"max"</span>]).<span class="bu">round</span>(<span class="dv">1</span>)</span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>peak_q <span class="op">=</span> q[<span class="st">"max"</span>].idxmax()</span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Quarter with the highest single max wheat price:"</span>,</span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>      <span class="ss">f"</span><span class="sc">{</span>peak_q<span class="sc">.</span>year<span class="sc">}</span><span class="ss">-Q</span><span class="sc">{</span>peak_q<span class="sc">.</span>quarter<span class="sc">}</span><span class="ss">  (max = </span><span class="sc">{</span>q[<span class="st">'max'</span>]<span class="sc">.</span><span class="bu">max</span>()<span class="sc">}</span><span class="ss">)"</span>)</span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a>q.loc[<span class="st">"2007"</span>:<span class="st">"2008"</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Quarter with the highest single max wheat price: 2008-Q1  (max = 403.8)</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="28">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">mean</th>
+<th data-quarto-table-cell-role="th">min</th>
+<th data-quarto-table-cell-role="th">max</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">date</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2007-03-31</th>
+<td>173.7</td>
+<td>172.6</td>
+<td>175.3</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">2007-06-30</th>
+<td>187.7</td>
+<td>178.0</td>
+<td>206.5</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2007-09-30</th>
+<td>253.6</td>
+<td>222.0</td>
+<td>298.0</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">2007-12-31</th>
+<td>309.8</td>
+<td>286.5</td>
+<td>339.2</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2008-03-31</th>
+<td>377.9</td>
+<td>336.1</td>
+<td>403.8</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">2008-06-30</th>
+<td>309.8</td>
+<td>288.4</td>
+<td>326.9</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2008-09-30</th>
+<td>288.9</td>
+<td>263.1</td>
+<td>304.2</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">2008-12-31</th>
+<td>195.2</td>
+<td>188.8</td>
+<td>202.8</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</section>
+<section id="key-takeaways" class="level2">
+<h2 class="anchored" data-anchor-id="key-takeaways">10. Key takeaways</h2>
+<ul>
+<li>A time series is <strong>ordered</strong> data; that ordering forbids shuffling and future leakage, and drives every rule that follows.</li>
+<li>Decompose a series into <strong>trend, seasonality, cyclicity, and residual</strong> — and decide between an <strong>additive</strong> and a <strong>multiplicative</strong> view.</li>
+<li><strong>Rebuild the index from reliable fields</strong> rather than trusting a pre-made date string, and always set an explicit <strong>frequency</strong> (<code>asfreq</code>). It is what lets pandas and statsmodels reason about the calendar and expose gaps.</li>
+<li><strong>Resampling</strong> changes frequency — <em>aggregate</em> when downsampling, <em>fill / interpolate</em> when upsampling — and the choice of aggregation encodes meaning.</li>
+<li><strong>Rolling / expanding windows</strong> and <strong>shift / diff</strong> are today’s diagnostics and tomorrow’s ML features.</li>
+<li>Treat <strong>missing timestamps</strong> as more dangerous than missing values; <em>reindex</em> onto the full calendar to make them visible, then choose an interpolation method consciously.</li>
+<li><strong>Look before you model:</strong> line, seasonal, subseries, lag, and heatmap plots, and an <strong>STL decomposition</strong>, tell you what kind of structure — and therefore what kind of model — you are dealing with.</li>
+</ul>
+<section id="whats-next-part-2-statistical-properties-decomposition" class="level3">
+<h3 class="anchored" data-anchor-id="whats-next-part-2-statistical-properties-decomposition">What’s next — Part 2: Statistical Properties &amp; Decomposition</h3>
+<p>Part 2 makes the diagnostics formal: <strong>stationarity</strong>, the <strong>ACF/PACF</strong> we teased here, unit-root tests (<strong>ADF, KPSS</strong>), and the transformations (<strong>differencing, Box-Cox</strong>) that prepare a series for the ARIMA family in Part 4.</p>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+    const viewSource = window.document.getElementById('quarto-view-source') ||
+                       window.document.getElementById('quarto-code-tools-source');
+    if (viewSource) {
+      const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+      viewSource.addEventListener("click", function(e) {
+        if (sourceUrl) {
+          // rstudio viewer pane
+          if (/\bcapabilities=\b/.test(window.location)) {
+            window.open(sourceUrl);
+          } else {
+            window.location.href = sourceUrl;
+          }
+        } else {
+          const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+          modal.show();
+        }
+        return false;
+      });
+    }
+    function toggleCodeHandler(show) {
+      return function(e) {
+        const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+        for (let i=0; i<detailsSrc.length; i++) {
+          const details = detailsSrc[i].parentElement;
+          if (show) {
+            details.open = true;
+          } else {
+            details.removeAttribute("open");
+          }
+        }
+        const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+        const fromCls = show ? "hidden" : "unhidden";
+        const toCls = show ? "unhidden" : "hidden";
+        for (let i=0; i<cellCodeDivs.length; i++) {
+          const codeDiv = cellCodeDivs[i];
+          if (codeDiv.classList.contains(fromCls)) {
+            codeDiv.classList.remove(fromCls);
+            codeDiv.classList.add(toCls);
+          } 
+        }
+        return false;
+      }
+    }
+    const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+    if (hideAllCode) {
+      hideAllCode.addEventListener("click", toggleCodeHandler(false));
+    }
+    const showAllCode = window.document.getElementById("quarto-show-all-code");
+    if (showAllCode) {
+      showAllCode.addEventListener("click", toggleCodeHandler(true));
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/zia207\.github\.io\/Time-Series-Analysis-Python");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../index.html" class="pagination-link" aria-label="Overview">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Overview</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../notebooks/part-02-stationarity.html" class="pagination-link" aria-label="2 · Statistical Properties &amp; Decomposition">
+        <span class="nav-page-text">2 · Statistical Properties &amp; Decomposition</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+<p>Time Series Analysis in Python · a 12-part tutorial</p>
+<div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/zia207/Time-Series-Analysis-Python/blob/main/notebooks/part-01-foundations.ipynb" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/zia207/Time-Series-Analysis-Python/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+<script src="../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>

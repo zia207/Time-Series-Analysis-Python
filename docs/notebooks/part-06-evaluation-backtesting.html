@@ -1,0 +1,1660 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Part 6 — Evaluation, Backtesting &amp; Baselines – Time Series Analysis in Python</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../notebooks/part-07-feature-engineering.html" rel="next">
+<link href="../notebooks/part-05-advanced-multivariate.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-8b4baf804e461d9b72633f0de59a0cac.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-d5db10917c6d76a3e5f935fb4eb5ba92.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+<script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="nav-sidebar docked nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">Time Series Analysis in Python</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link active" href="../index.html" aria-current="page"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-parts" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Parts</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-parts">    
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-01-foundations.html">
+ <span class="dropdown-text">1 · Foundations &amp; Data Handling</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-02-stationarity.html">
+ <span class="dropdown-text">2 · Statistical Properties &amp; Decomposition</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-03-smoothing.html">
+ <span class="dropdown-text">3 · Smoothing &amp; Exponential Methods</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-04-arima.html">
+ <span class="dropdown-text">4 · The ARIMA Family</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-05-advanced-multivariate.html">
+ <span class="dropdown-text">5 · Advanced &amp; Multivariate Models</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-06-evaluation-backtesting.html">
+ <span class="dropdown-text">6 · Evaluation, Backtesting &amp; Baselines</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-07-feature-engineering.html">
+ <span class="dropdown-text">7 · Feature Engineering &amp; the ML Reduction</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-08-ml-forecasting.html">
+ <span class="dropdown-text">8 · Machine Learning Forecasting</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-09-deep-learning.html">
+ <span class="dropdown-text">9 · Deep Learning for Sequences</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-10-modern-dl.html">
+ <span class="dropdown-text">10 · Modern Deep Architectures</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-11-specialized-topics.html">
+ <span class="dropdown-text">11 · Specialized Topics</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-12-deployment-capstone.html">
+ <span class="dropdown-text">12 · Deployment &amp; Capstone</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+    <a href="https://github.com/zia207/Time-Series-Analysis-Python" title="Source" class="quarto-navigation-tool px-1" aria-label="Source"><i class="bi bi-github"></i></a>
+  <a href="" class="quarto-reader-toggle quarto-navigation-tool px-1" onclick="window.quartoToggleReader(); return false;" title="Toggle reader mode">
+  <div class="quarto-reader-toggle-btn">
+  <i class="bi"></i>
+  </div>
+</a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../notebooks/part-06-evaluation-backtesting.html">Rigorous Evaluation</a></li><li class="breadcrumb-item"><a href="../notebooks/part-06-evaluation-backtesting.html">6 · Evaluation, Backtesting &amp; Baselines</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Foundations</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-01-foundations.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">1 · Foundations &amp; Data Handling</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-02-stationarity.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">2 · Statistical Properties &amp; Decomposition</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Classical Forecasting</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-03-smoothing.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">3 · Smoothing &amp; Exponential Methods</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-04-arima.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4 · The ARIMA Family</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-05-advanced-multivariate.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">5 · Advanced &amp; Multivariate Models</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+ <span class="menu-text">Rigorous Evaluation</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-06-evaluation-backtesting.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">6 · Evaluation, Backtesting &amp; Baselines</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Machine Learning</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-07-feature-engineering.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">7 · Feature Engineering &amp; the ML Reduction</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-08-ml-forecasting.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">8 · Machine Learning Forecasting</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
+ <span class="menu-text">Deep Learning</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-09-deep-learning.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">9 · Deep Learning for Sequences</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-10-modern-dl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">10 · Modern Deep Architectures</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true">
+ <span class="menu-text">Frontiers &amp; Practice</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-11-specialized-topics.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">11 · Specialized Topics</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-12-deployment-capstone.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">12 · Deployment &amp; Capstone</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#what-you-will-learn" id="toc-what-you-will-learn" class="nav-link active" data-scroll-target="#what-you-will-learn">What you will learn</a></li>
+  <li><a href="#dataset-continuity" id="toc-dataset-continuity" class="nav-link" data-scroll-target="#dataset-continuity">Dataset &amp; continuity</a></li>
+  <li><a href="#setup-and-a-small-stable-of-forecasters" id="toc-setup-and-a-small-stable-of-forecasters" class="nav-link" data-scroll-target="#setup-and-a-small-stable-of-forecasters">0. Setup and a small stable of forecasters</a></li>
+  <li><a href="#the-problem-with-a-single-split" id="toc-the-problem-with-a-single-split" class="nav-link" data-scroll-target="#the-problem-with-a-single-split">1. The problem with a single split</a></li>
+  <li><a href="#baselines-the-hurdle-every-model-must-clear" id="toc-baselines-the-hurdle-every-model-must-clear" class="nav-link" data-scroll-target="#baselines-the-hurdle-every-model-must-clear">2. Baselines — the hurdle every model must clear</a></li>
+  <li><a href="#the-metric-zoo" id="toc-the-metric-zoo" class="nav-link" data-scroll-target="#the-metric-zoo">3. The metric zoo</a>
+  <ul class="collapse">
+  <li><a href="#scale-dependent-errors-mae-and-rmse" id="toc-scale-dependent-errors-mae-and-rmse" class="nav-link" data-scroll-target="#scale-dependent-errors-mae-and-rmse">3.1 Scale-dependent errors: MAE and RMSE</a></li>
+  <li><a href="#percentage-errors-mape-and-smape" id="toc-percentage-errors-mape-and-smape" class="nav-link" data-scroll-target="#percentage-errors-mape-and-smape">3.2 Percentage errors: MAPE and sMAPE</a></li>
+  <li><a href="#the-recommended-default-mase" id="toc-the-recommended-default-mase" class="nav-link" data-scroll-target="#the-recommended-default-mase">3.3 The recommended default: MASE</a></li>
+  <li><a href="#probabilistic-forecasts-pinball-quantile-loss" id="toc-probabilistic-forecasts-pinball-quantile-loss" class="nav-link" data-scroll-target="#probabilistic-forecasts-pinball-quantile-loss">3.4 Probabilistic forecasts: pinball (quantile) loss</a></li>
+  <li><a href="#metrics-side-by-side" id="toc-metrics-side-by-side" class="nav-link" data-scroll-target="#metrics-side-by-side">3.5 Metrics side by side</a></li>
+  </ul></li>
+  <li><a href="#time-series-cross-validation-walk-forward-backtesting" id="toc-time-series-cross-validation-walk-forward-backtesting" class="nav-link" data-scroll-target="#time-series-cross-validation-walk-forward-backtesting">4. Time-series cross-validation (walk-forward backtesting)</a></li>
+  <li><a href="#leakage-traps-how-good-scores-go-wrong" id="toc-leakage-traps-how-good-scores-go-wrong" class="nav-link" data-scroll-target="#leakage-traps-how-good-scores-go-wrong">5. Leakage traps — how good scores go wrong</a></li>
+  <li><a href="#multi-step-forecasting-strategies" id="toc-multi-step-forecasting-strategies" class="nav-link" data-scroll-target="#multi-step-forecasting-strategies">6. Multi-step forecasting strategies</a></li>
+  <li><a href="#doing-this-with-sktime" id="toc-doing-this-with-sktime" class="nav-link" data-scroll-target="#doing-this-with-sktime">7. Doing this with <code>sktime</code></a></li>
+  <li><a href="#exercises" id="toc-exercises" class="nav-link" data-scroll-target="#exercises">8. Exercises</a></li>
+  <li><a href="#key-takeaways" id="toc-key-takeaways" class="nav-link" data-scroll-target="#key-takeaways">9. Key takeaways</a>
+  <ul class="collapse">
+  <li><a href="#whats-next-part-7-feature-engineering-the-ml-reduction" id="toc-whats-next-part-7-feature-engineering-the-ml-reduction" class="nav-link" data-scroll-target="#whats-next-part-7-feature-engineering-the-ml-reduction">What’s next — Part 7: Feature Engineering &amp; the ML Reduction</a></li>
+  </ul></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/zia207/Time-Series-Analysis-Python/blob/main/notebooks/part-06-evaluation-backtesting.ipynb" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/zia207/Time-Series-Analysis-Python/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../notebooks/part-06-evaluation-backtesting.html">Rigorous Evaluation</a></li><li class="breadcrumb-item"><a href="../notebooks/part-06-evaluation-backtesting.html">6 · Evaluation, Backtesting &amp; Baselines</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">Part 6 — Evaluation, Backtesting &amp; Baselines</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p><strong>Series:</strong> <em>Time Series Analysis in Python — from Statistical Modeling to Machine Learning</em></p>
+<p>For five parts we have quietly leaned on a <strong>single train/test split</strong> — the last 24 months — and every time the story was the same: nothing beat the drift baseline. This part reveals <em>why that verdict was unreliable</em>, and builds the rigorous evaluation machinery every later part depends on. It is the least glamorous and most important notebook in the series: <strong>a model is only as trustworthy as the procedure used to score it.</strong></p>
+<section id="what-you-will-learn" class="level3">
+<h3 class="anchored" data-anchor-id="what-you-will-learn">What you will learn</h3>
+<ol type="1">
+<li>Why a <strong>single split is fragile</strong>, and the discipline that fixes it</li>
+<li>The <strong>baselines</strong> you must always beat, and why they anchor good metrics</li>
+<li>The full <strong>metric zoo</strong> — MAE, RMSE, MAPE, sMAPE, <strong>MASE</strong>, and <strong>pinball loss</strong></li>
+<li><strong>Time-series cross-validation</strong> — expanding vs.&nbsp;sliding windows, walk-forward backtesting</li>
+<li><strong>Leakage traps</strong> that silently invalidate results</li>
+<li><strong>Multi-step strategies</strong> — recursive, direct, DirRec — the bridge to the ML parts</li>
+</ol>
+</section>
+<section id="dataset-continuity" class="level3">
+<h3 class="anchored" data-anchor-id="dataset-continuity">Dataset &amp; continuity</h3>
+<p>Still <code>monthly_price.csv</code> (356 months, 1992–2021), forecasting the <strong>Food Price Index</strong>. New libraries: <code>scikit-learn</code> (<code>TimeSeriesSplit</code>) and <code>sktime</code>.</p>
+</section>
+<section id="setup-and-a-small-stable-of-forecasters" class="level2">
+<h2 class="anchored" data-anchor-id="setup-and-a-small-stable-of-forecasters">0. Setup and a small stable of forecasters</h2>
+<p>To study <em>evaluation</em>, we need a few models to evaluate. We wrap five familiar forecasters from Parts 3–4 as simple functions <code>f(train, h) -&gt; array</code> so we can score them uniformly.</p>
+<div id="51958ac2" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T20:04:06.076309Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T20:04:06.075333Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T20:04:07.576756Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T20:04:07.575760Z&quot;}}" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings, logging</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.dates <span class="im">as</span> mdates</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> matplotlib.patches <span class="im">import</span> Patch</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>warnings.simplefilter(<span class="st">"ignore"</span>)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> TimeSeriesSplit, KFold</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LinearRegression</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> statsmodels.tsa.exponential_smoothing.ets <span class="im">import</span> ETSModel</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> statsmodels.tsa.arima.model <span class="im">import</span> ARIMA</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>plt.rcParams.update({</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    <span class="st">"figure.figsize"</span>: (<span class="dv">11</span>, <span class="fl">4.2</span>), <span class="st">"figure.dpi"</span>: <span class="dv">110</span>,</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    <span class="st">"axes.grid"</span>: <span class="va">True</span>, <span class="st">"grid.alpha"</span>: <span class="fl">0.3</span>,</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    <span class="st">"axes.spines.top"</span>: <span class="va">False</span>, <span class="st">"axes.spines.right"</span>: <span class="va">False</span>,</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    <span class="st">"axes.titlesize"</span>: <span class="dv">13</span>, <span class="st">"axes.titleweight"</span>: <span class="st">"bold"</span>,</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    <span class="st">"font.size"</span>: <span class="dv">11</span>, <span class="st">"lines.linewidth"</span>: <span class="fl">1.6</span>,</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>PALETTE <span class="op">=</span> [<span class="st">"#2b6cb0"</span>, <span class="st">"#c05621"</span>, <span class="st">"#2f855a"</span>, <span class="st">"#6b46c1"</span>, <span class="st">"#b83280"</span>, <span class="st">"#718096"</span>]</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>raw <span class="op">=</span> pd.read_csv(<span class="st">"monthly_price.csv"</span>)</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>dates <span class="op">=</span> pd.to_datetime(raw[<span class="st">"YEAR"</span>].astype(<span class="bu">str</span>) <span class="op">+</span> <span class="st">"-"</span> <span class="op">+</span> raw[<span class="st">"MONTH"</span>], <span class="bu">format</span><span class="op">=</span><span class="st">"%Y-%b"</span>)</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> raw.drop(columns<span class="op">=</span>[<span class="st">"ID"</span>, <span class="st">"YEAR"</span>, <span class="st">"MONTH"</span>, <span class="st">"TIME"</span>]).copy()</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>df.index <span class="op">=</span> dates<span class="op">;</span> df.index.name <span class="op">=</span> <span class="st">"date"</span><span class="op">;</span> df <span class="op">=</span> df.asfreq(<span class="st">"MS"</span>)</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> df[<span class="st">"Food_Price_Index"</span>]</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> f_naive(tr, h):  <span class="cf">return</span> np.repeat(tr.iloc[<span class="op">-</span><span class="dv">1</span>], h)</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> f_snaive(tr, h, m<span class="op">=</span><span class="dv">12</span>): <span class="cf">return</span> np.tile(tr.iloc[<span class="op">-</span>m:].values, <span class="bu">int</span>(np.ceil(h<span class="op">/</span>m)))[:h]</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> f_drift(tr, h):</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>    slope <span class="op">=</span> (tr.iloc[<span class="op">-</span><span class="dv">1</span>] <span class="op">-</span> tr.iloc[<span class="dv">0</span>]) <span class="op">/</span> (<span class="bu">len</span>(tr) <span class="op">-</span> <span class="dv">1</span>)</span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> tr.iloc[<span class="op">-</span><span class="dv">1</span>] <span class="op">+</span> slope <span class="op">*</span> np.arange(<span class="dv">1</span>, h <span class="op">+</span> <span class="dv">1</span>)</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> f_ets(tr, h):</span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> ETSModel(tr, error<span class="op">=</span><span class="st">"mul"</span>, trend<span class="op">=</span><span class="st">"add"</span>, damped_trend<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>                    initialization_method<span class="op">=</span><span class="st">"estimated"</span>).fit(disp<span class="op">=</span><span class="va">False</span>).forecast(h).values</span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> f_arima(tr, h):</span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> ARIMA(tr, order<span class="op">=</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">0</span>)).fit().get_forecast(h).predicted_mean.values</span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>FORECASTERS <span class="op">=</span> {<span class="st">"Naive"</span>: f_naive, <span class="st">"SeasonalNaive"</span>: f_snaive,</span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>               <span class="st">"Drift"</span>: f_drift, <span class="st">"ETS"</span>: f_ets, <span class="st">"ARIMA"</span>: f_arima}</span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"forecasters ready:"</span>, <span class="bu">list</span>(FORECASTERS))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>forecasters ready: ['Naive', 'SeasonalNaive', 'Drift', 'ETS', 'ARIMA']</code></pre>
+</div>
+</div>
+</section>
+<section id="the-problem-with-a-single-split" class="level2">
+<h2 class="anchored" data-anchor-id="the-problem-with-a-single-split">1. The problem with a single split</h2>
+<p>The score from one train/test split is a <strong>sample of size one</strong>. Time series are non-stationary, so <em>which</em> window you test on can dominate the result. To show how severe this is, we score the <strong>same ETS model</strong> on several different 12-month windows.</p>
+<div id="c3abb3af" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T20:04:07.579111Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T20:04:07.578512Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T20:04:07.692422Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T20:04:07.691448Z&quot;}}" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>windows <span class="op">=</span> [<span class="st">"2014-12"</span>, <span class="st">"2015-12"</span>, <span class="st">"2016-12"</span>, <span class="st">"2017-12"</span>, <span class="st">"2018-12"</span>, <span class="st">"2019-12"</span>, <span class="st">"2020-12"</span>, <span class="st">"2021-08"</span>]</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>h <span class="op">=</span> <span class="dv">12</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>rows <span class="op">=</span> []</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> w <span class="kw">in</span> windows:</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    cut <span class="op">=</span> y.index.get_loc(pd.Timestamp(w <span class="op">+</span> <span class="st">"-01"</span>)) <span class="op">+</span> <span class="dv">1</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    tr, te <span class="op">=</span> y.iloc[:cut <span class="op">-</span> h], y.iloc[cut <span class="op">-</span> h:cut]</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    rmse <span class="op">=</span> np.sqrt(np.mean((te.values <span class="op">-</span> f_ets(tr, h)) <span class="op">**</span> <span class="dv">2</span>))</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    rows.append({<span class="st">"window ends"</span>: w, <span class="st">"ETS RMSE"</span>: <span class="bu">round</span>(rmse, <span class="dv">2</span>)})</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>frag <span class="op">=</span> pd.DataFrame(rows)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>frag</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="2">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">window ends</th>
+<th data-quarto-table-cell-role="th">ETS RMSE</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>2014-12</td>
+<td>4.80</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>2015-12</td>
+<td>10.47</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>2016-12</td>
+<td>8.40</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>2017-12</td>
+<td>1.51</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>2018-12</td>
+<td>5.04</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">5</th>
+<td>2019-12</td>
+<td>2.24</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">6</th>
+<td>2020-12</td>
+<td>7.11</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">7</th>
+<td>2021-08</td>
+<td>20.98</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div id="918e5a7e" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T20:04:07.694591Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T20:04:07.693765Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T20:04:07.853265Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T20:04:07.852206Z&quot;}}" data-execution_count="3">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">11</span>, <span class="fl">3.6</span>))</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>ax.bar(frag[<span class="st">"window ends"</span>], frag[<span class="st">"ETS RMSE"</span>], color<span class="op">=</span>PALETTE[<span class="dv">0</span>], alpha<span class="op">=</span><span class="fl">0.85</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"Same ETS model, wildly different RMSE depending on the test window"</span>)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">"RMSE"</span>)<span class="op">;</span> ax.set_xlabel(<span class="st">"12-month test window ending"</span>)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>worst <span class="op">=</span> frag.loc[frag[<span class="st">"ETS RMSE"</span>].idxmax()]</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>ax.annotate(<span class="st">"the window we used</span><span class="ch">\n</span><span class="st">in Parts 3–5"</span>, xy<span class="op">=</span>(<span class="bu">len</span>(frag)<span class="op">-</span><span class="dv">1</span>, worst[<span class="st">"ETS RMSE"</span>]),</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>            xytext<span class="op">=</span>(<span class="bu">len</span>(frag)<span class="op">-</span><span class="fl">3.2</span>, worst[<span class="st">"ETS RMSE"</span>]<span class="op">*</span><span class="fl">0.8</span>),</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>            arrowprops<span class="op">=</span><span class="bu">dict</span>(arrowstyle<span class="op">=</span><span class="st">"-&gt;"</span>, color<span class="op">=</span><span class="st">"black"</span>), fontsize<span class="op">=</span><span class="dv">9</span>)</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()<span class="op">;</span> plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="part-06-evaluation-backtesting_files/figure-html/cell-4-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The identical model swings from an RMSE around <strong>1.5</strong> on a calm window to roughly <strong>21</strong> on the 2020–21 window — an order-of-magnitude difference driven entirely by <em>when</em> we tested. Parts 3–5 happened to use the hardest window on the whole record, which is exactly why every model there looked barely better than naive. <strong>No single split can be trusted</strong>; we need to average performance over many windows. That is cross-validation for time series.</p>
+</section>
+<section id="baselines-the-hurdle-every-model-must-clear" class="level2">
+<h2 class="anchored" data-anchor-id="baselines-the-hurdle-every-model-must-clear">2. Baselines — the hurdle every model must clear</h2>
+<p>Before metrics and CV, fix the <strong>reference points</strong>. A forecast’s number means nothing in isolation; it only matters <em>relative to something trivial</em>:</p>
+<ul>
+<li><strong>Naive</strong> — repeat the last value (“no change”).</li>
+<li><strong>Seasonal naive</strong> — repeat the value from one season (12 months) ago.</li>
+<li><strong>Drift</strong> — extend the straight line from first to last training point.</li>
+<li><strong>Mean</strong> — the historical average (rarely competitive, but a floor).</li>
+</ul>
+<p>If a complex model can’t beat these, it has not earned its complexity — and, as we’ll see, the best baseline also becomes the <strong>denominator</strong> of the most useful metric (MASE). Baselines aren’t a formality; they are the measuring stick.</p>
+</section>
+<section id="the-metric-zoo" class="level2">
+<h2 class="anchored" data-anchor-id="the-metric-zoo">3. The metric zoo</h2>
+<p>No single number captures forecast quality. Each metric answers a different question and has different failure modes. We implement them from scratch.</p>
+<section id="scale-dependent-errors-mae-and-rmse" class="level3">
+<h3 class="anchored" data-anchor-id="scale-dependent-errors-mae-and-rmse">3.1 Scale-dependent errors: MAE and RMSE</h3>
+<p><span class="math display">\[\text{MAE}=\frac{1}{n}\sum|y-\hat y|, \qquad
+  \text{RMSE}=\sqrt{\frac{1}{n}\sum (y-\hat y)^2}\]</span></p>
+<p>Both are in the <strong>units of the series</strong>, so they’re intuitive but <strong>can’t be compared across series</strong> of different scale. RMSE penalizes large errors more (it squares them), so it’s the choice when big misses are especially costly; MAE is more robust to outliers.</p>
+<div id="d09a073c" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T20:04:07.855037Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T20:04:07.854868Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T20:04:07.859188Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T20:04:07.858363Z&quot;}}" data-execution_count="4">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> mae(a, p):  a,p<span class="op">=</span>np.asarray(a),np.asarray(p)<span class="op">;</span> <span class="cf">return</span> np.mean(np.<span class="bu">abs</span>(a <span class="op">-</span> p))</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> rmse(a, p): a,p<span class="op">=</span>np.asarray(a),np.asarray(p)<span class="op">;</span> <span class="cf">return</span> np.sqrt(np.mean((a <span class="op">-</span> p) <span class="op">**</span> <span class="dv">2</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="percentage-errors-mape-and-smape" class="level3">
+<h3 class="anchored" data-anchor-id="percentage-errors-mape-and-smape">3.2 Percentage errors: MAPE and sMAPE</h3>
+<p><span class="math display">\[\text{MAPE}=\frac{100}{n}\sum\left|\frac{y-\hat y}{y}\right|,\qquad
+  \text{sMAPE}=\frac{100}{n}\sum\frac{|y-\hat y|}{(|y|+|\hat y|)/2}\]</span></p>
+<p>MAPE is <strong>scale-free</strong> (a %), which aids comparison — but it is <strong>undefined at y=0</strong>, explodes for small y, and is <strong>asymmetric</strong>: because it divides by the <em>actual</em>, an under-forecast can cost at most 100% (forecast down to zero) while an over-forecast is unbounded, so MAPE-optimal forecasts are biased low. <strong>sMAPE</strong> symmetrizes the denominator and is bounded on both sides, though it has quirks of its own.</p>
+<div id="77516c90" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T20:04:07.861202Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T20:04:07.860623Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T20:04:07.867871Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T20:04:07.867118Z&quot;}}" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> mape(a, p):  a,p<span class="op">=</span>np.asarray(a),np.asarray(p)<span class="op">;</span> <span class="cf">return</span> <span class="dv">100</span><span class="op">*</span>np.mean(np.<span class="bu">abs</span>((a<span class="op">-</span>p)<span class="op">/</span>a))</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> smape(a, p): a,p<span class="op">=</span>np.asarray(a),np.asarray(p)<span class="op">;</span> <span class="cf">return</span> <span class="dv">100</span><span class="op">*</span>np.mean(np.<span class="bu">abs</span>(a<span class="op">-</span>p)<span class="op">/</span>((np.<span class="bu">abs</span>(a)<span class="op">+</span>np.<span class="bu">abs</span>(p))<span class="op">/</span><span class="dv">2</span>))</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co"># MAPE's real asymmetry: it divides by the ACTUAL, so under-forecasting is capped</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="co"># at 100% (forecast down to 0) while over-forecasting is unbounded.</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"actual = 100, vary the forecast:"</span>)</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> fc <span class="kw">in</span> [<span class="dv">0</span>, <span class="dv">50</span>, <span class="dv">80</span>, <span class="dv">120</span>, <span class="dv">200</span>, <span class="dv">300</span>]:</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  forecast = </span><span class="sc">{</span>fc<span class="sc">:3d}</span><span class="ss">:  MAPE = </span><span class="sc">{</span>mape([<span class="dv">100</span>],[fc])<span class="sc">:3.0f}</span><span class="ss">%   "</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>          <span class="ss">f"sMAPE = </span><span class="sc">{</span>smape([<span class="dv">100</span>],[fc])<span class="sc">:3.0f}</span><span class="ss">%"</span>)</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">Under-forecasting to 0 tops out at MAPE 100%, but a 3× over-forecast is 200%."</span>)</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"That asymmetry quietly biases MAPE-optimal forecasts LOW; sMAPE bounds both sides."</span>)</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="co"># scale sensitivity: the SAME absolute error costs more on a small actual</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">Same absolute error of 20, different actual levels:"</span>)</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> a <span class="kw">in</span> [<span class="dv">40</span>, <span class="dv">100</span>, <span class="dv">200</span>]:</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  actual = </span><span class="sc">{</span>a<span class="sc">:3d}</span><span class="ss">, error 20:  MAPE = </span><span class="sc">{</span>mape([a],[a<span class="op">-</span><span class="dv">20</span>])<span class="sc">:.0f}</span><span class="ss">%"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>actual = 100, vary the forecast:
+  forecast =   0:  MAPE = 100%   sMAPE = 200%
+  forecast =  50:  MAPE =  50%   sMAPE =  67%
+  forecast =  80:  MAPE =  20%   sMAPE =  22%
+  forecast = 120:  MAPE =  20%   sMAPE =  18%
+  forecast = 200:  MAPE = 100%   sMAPE =  67%
+  forecast = 300:  MAPE = 200%   sMAPE = 100%
+
+Under-forecasting to 0 tops out at MAPE 100%, but a 3× over-forecast is 200%.
+That asymmetry quietly biases MAPE-optimal forecasts LOW; sMAPE bounds both sides.
+
+Same absolute error of 20, different actual levels:
+  actual =  40, error 20:  MAPE = 50%
+  actual = 100, error 20:  MAPE = 20%
+  actual = 200, error 20:  MAPE = 10%</code></pre>
+</div>
+</div>
+</section>
+<section id="the-recommended-default-mase" class="level3">
+<h3 class="anchored" data-anchor-id="the-recommended-default-mase">3.3 The recommended default: MASE</h3>
+<p><strong>MASE</strong> (Mean Absolute Scaled Error) divides the model’s MAE by the MAE of a <strong>naive forecast computed in-sample</strong> — usually the seasonal-naive one-step error on the training data:</p>
+<p><span class="math display">\[\text{MASE}=\frac{\text{MAE}_\text{model}}
+   {\frac{1}{n-m}\sum_{t=m+1}^{n}|y_t-y_{t-m}|}\]</span></p>
+<p>This makes it <strong>scale-free <em>and</em> interpretable</strong>: <strong>MASE &lt; 1</strong> means the model beats the naive benchmark; <strong>MASE &gt; 1</strong> means it’s worse. It’s defined everywhere (no divide-by-zero), comparable across series, and is the metric Hyndman recommends as a default.</p>
+<div id="b4940301" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T20:04:07.869435Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T20:04:07.869266Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T20:04:07.872960Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T20:04:07.872152Z&quot;}}" data-execution_count="6">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> mase(actual, pred, train, m<span class="op">=</span><span class="dv">12</span>):</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    denom <span class="op">=</span> np.mean(np.<span class="bu">abs</span>(train.values[m:] <span class="op">-</span> train.values[:<span class="op">-</span>m]))  <span class="co"># in-sample seasonal naive</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> mae(actual, pred) <span class="op">/</span> denom</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="probabilistic-forecasts-pinball-quantile-loss" class="level3">
+<h3 class="anchored" data-anchor-id="probabilistic-forecasts-pinball-quantile-loss">3.4 Probabilistic forecasts: pinball (quantile) loss</h3>
+<p>Point metrics ignore uncertainty. The <strong>pinball loss</strong> scores a <strong>quantile</strong> forecast <span class="math inline">\(\hat q_\tau\)</span> against the outcome, penalizing under- and over-prediction asymmetrically according to the target quantile τ:</p>
+<p><span class="math display">\[L_\tau(y,\hat q_\tau)=\begin{cases}\tau\,(y-\hat q_\tau) &amp; y\ge \hat q_\tau\\
+(1-\tau)(\hat q_\tau-y) &amp; y&lt;\hat q_\tau\end{cases}\]</span></p>
+<p>Averaged over several quantiles it rewards <strong>well-calibrated intervals</strong>, not just a good centre — the right metric when the whole predictive distribution matters (risk, inventory, capacity).</p>
+<div id="3f398537" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T20:04:07.874601Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T20:04:07.874445Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T20:04:07.905704Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T20:04:07.904886Z&quot;}}" data-execution_count="7">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> pinball(actual, q_pred, tau):</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    actual, q_pred <span class="op">=</span> np.asarray(actual), np.asarray(q_pred)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    diff <span class="op">=</span> actual <span class="op">-</span> q_pred</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> np.mean(np.maximum(tau <span class="op">*</span> diff, (tau <span class="op">-</span> <span class="dv">1</span>) <span class="op">*</span> diff))</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="co"># quantile forecasts from ARIMA's normal predictive distribution on one window</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>cut <span class="op">=</span> <span class="bu">len</span>(y)<span class="op">;</span> tr, te <span class="op">=</span> y.iloc[:cut<span class="op">-</span>h], y.iloc[cut<span class="op">-</span>h:cut]</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>res <span class="op">=</span> ARIMA(tr, order<span class="op">=</span>(<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">0</span>)).fit().get_forecast(h)</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>mean, se <span class="op">=</span> res.predicted_mean.values, res.se_mean.values</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.stats <span class="im">import</span> norm</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>taus <span class="op">=</span> [<span class="fl">0.1</span>, <span class="fl">0.5</span>, <span class="fl">0.9</span>]</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>pin <span class="op">=</span> {<span class="ss">f"τ=</span><span class="sc">{</span>t<span class="sc">}</span><span class="ss">"</span>: <span class="bu">round</span>(pinball(te.values, mean <span class="op">+</span> norm.ppf(t)<span class="op">*</span>se, t), <span class="dv">3</span>) <span class="cf">for</span> t <span class="kw">in</span> taus}</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Pinball loss by quantile (ARIMA, last 12 months):"</span>, pin)</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Average pinball loss:"</span>, <span class="bu">round</span>(np.mean(<span class="bu">list</span>(pin.values())), <span class="dv">3</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Pinball loss by quantile (ARIMA, last 12 months): {'τ=0.1': np.float64(3.18), 'τ=0.5': np.float64(10.17), 'τ=0.9': np.float64(8.101)}
+Average pinball loss: 7.15</code></pre>
+</div>
+</div>
+</section>
+<section id="metrics-side-by-side" class="level3">
+<h3 class="anchored" data-anchor-id="metrics-side-by-side">3.5 Metrics side by side</h3>
+<p>Computed on one window, the metrics can even <strong>disagree on the ranking</strong> — a reason to pick your metric deliberately, ideally MASE for cross-series comparability plus a probabilistic score when intervals matter.</p>
+<div id="f278448c" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T20:04:07.907847Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T20:04:07.907186Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T20:04:07.955064Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T20:04:07.954256Z&quot;}}" data-execution_count="8">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>tr, te <span class="op">=</span> y.iloc[:<span class="op">-</span>h], y.iloc[<span class="op">-</span>h:]</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>rows <span class="op">=</span> []</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> name, fn <span class="kw">in</span> FORECASTERS.items():</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    fc <span class="op">=</span> fn(tr, h)</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    rows.append({<span class="st">"model"</span>: name, <span class="st">"MAE"</span>: <span class="bu">round</span>(mae(te, fc),<span class="dv">2</span>), <span class="st">"RMSE"</span>: <span class="bu">round</span>(rmse(te, fc),<span class="dv">2</span>),</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>                 <span class="st">"MAPE%"</span>: <span class="bu">round</span>(mape(te, fc),<span class="dv">2</span>), <span class="st">"sMAPE%"</span>: <span class="bu">round</span>(smape(te, fc),<span class="dv">2</span>),</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>                 <span class="st">"MASE"</span>: <span class="bu">round</span>(mase(te, fc, tr),<span class="dv">3</span>)})</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(rows)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="8">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">model</th>
+<th data-quarto-table-cell-role="th">MAE</th>
+<th data-quarto-table-cell-role="th">RMSE</th>
+<th data-quarto-table-cell-role="th">MAPE%</th>
+<th data-quarto-table-cell-role="th">sMAPE%</th>
+<th data-quarto-table-cell-role="th">MASE</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>Naive</td>
+<td>21.91</td>
+<td>24.12</td>
+<td>18.76</td>
+<td>21.10</td>
+<td>2.583</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>SeasonalNaive</td>
+<td>23.94</td>
+<td>26.01</td>
+<td>20.63</td>
+<td>23.38</td>
+<td>2.823</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>Drift</td>
+<td>21.25</td>
+<td>23.38</td>
+<td>18.20</td>
+<td>20.38</td>
+<td>2.505</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>ETS</td>
+<td>18.89</td>
+<td>20.98</td>
+<td>16.15</td>
+<td>17.88</td>
+<td>2.228</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>ARIMA</td>
+<td>20.34</td>
+<td>22.63</td>
+<td>17.37</td>
+<td>19.41</td>
+<td>2.398</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="time-series-cross-validation-walk-forward-backtesting" class="level2">
+<h2 class="anchored" data-anchor-id="time-series-cross-validation-walk-forward-backtesting">4. Time-series cross-validation (walk-forward backtesting)</h2>
+<p>The fix for the single-split problem: evaluate over <strong>many</strong> train/test folds that always respect time order — train on the past, test on the future, slide forward, repeat. This is <strong>walk-forward validation</strong> (a.k.a. backtesting). Two flavours:</p>
+<ul>
+<li><strong>Expanding window</strong> — the training set <strong>grows</strong> with each fold (uses all history). <code>sklearn</code>’s <code>TimeSeriesSplit</code> does this.</li>
+<li><strong>Sliding window</strong> — the training set is a <strong>fixed-length</strong> block that moves forward (adapts to regime change, caps training cost).</li>
+</ul>
+<p>Never shuffle: every test index must come <strong>after</strong> its training indices.</p>
+<div id="2cf61f28" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T20:04:07.957117Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T20:04:07.956548Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T20:04:08.178815Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T20:04:08.177825Z&quot;}}" data-execution_count="9">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_cv_folds(n<span class="op">=</span><span class="bu">len</span>(y), n_splits<span class="op">=</span><span class="dv">5</span>, test_size<span class="op">=</span><span class="dv">24</span>, window<span class="op">=</span><span class="st">"expanding"</span>):</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">11</span>, <span class="fl">3.2</span>))</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    splitter <span class="op">=</span> TimeSeriesSplit(n_splits<span class="op">=</span>n_splits, test_size<span class="op">=</span>test_size,</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>                               max_train_size<span class="op">=</span>(<span class="dv">120</span> <span class="cf">if</span> window<span class="op">==</span><span class="st">"sliding"</span> <span class="cf">else</span> <span class="va">None</span>))</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    dummy <span class="op">=</span> np.arange(n)</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i, (tri, tei) <span class="kw">in</span> <span class="bu">enumerate</span>(splitter.split(dummy)):</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>        ax.plot(tri, [i]<span class="op">*</span><span class="bu">len</span>(tri), <span class="st">"|"</span>, color<span class="op">=</span>PALETTE[<span class="dv">0</span>], ms<span class="op">=</span><span class="dv">6</span>)</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>        ax.plot(tei, [i]<span class="op">*</span><span class="bu">len</span>(tei), <span class="st">"|"</span>, color<span class="op">=</span>PALETTE[<span class="dv">1</span>], ms<span class="op">=</span><span class="dv">6</span>)</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>    ax.set_title(<span class="ss">f"</span><span class="sc">{</span>window<span class="sc">.</span>capitalize()<span class="sc">}</span><span class="ss">-window CV — </span><span class="sc">{</span>n_splits<span class="sc">}</span><span class="ss"> folds "</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>                 <span class="ss">f"(blue = train, orange = test)"</span>)</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>    ax.set_xlabel(<span class="st">"time index →"</span>)<span class="op">;</span> ax.set_ylabel(<span class="st">"fold"</span>)<span class="op">;</span> ax.set_yticks(<span class="bu">range</span>(n_splits))</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>    ax.legend(handles<span class="op">=</span>[Patch(color<span class="op">=</span>PALETTE[<span class="dv">0</span>], label<span class="op">=</span><span class="st">"train"</span>),</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>                       Patch(color<span class="op">=</span>PALETTE[<span class="dv">1</span>], label<span class="op">=</span><span class="st">"test"</span>)], frameon<span class="op">=</span><span class="va">False</span>, ncol<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>    plt.tight_layout()<span class="op">;</span> plt.show()</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>plot_cv_folds(window<span class="op">=</span><span class="st">"expanding"</span>)</span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>plot_cv_folds(window<span class="op">=</span><span class="st">"sliding"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="part-06-evaluation-backtesting_files/figure-html/cell-10-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="part-06-evaluation-backtesting_files/figure-html/cell-10-output-2.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>In the <strong>expanding</strong> diagram the blue training bar lengthens each fold; in the <strong>sliding</strong> diagram it stays a fixed width and marches right. Now the payoff: run a proper backtest and aggregate each model’s error <strong>across all folds</strong>, giving a mean and a spread instead of one fragile number.</p>
+<div id="f07ac4c7" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T20:04:08.180678Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T20:04:08.180209Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T20:04:08.387387Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T20:04:08.386245Z&quot;}}" data-execution_count="10">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> backtest(forecasters, y, n_splits<span class="op">=</span><span class="dv">6</span>, h<span class="op">=</span><span class="dv">12</span>, m<span class="op">=</span><span class="dv">12</span>):</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>    tscv <span class="op">=</span> TimeSeriesSplit(n_splits<span class="op">=</span>n_splits, test_size<span class="op">=</span>h)</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    acc <span class="op">=</span> {name: {<span class="st">"RMSE"</span>: [], <span class="st">"MASE"</span>: []} <span class="cf">for</span> name <span class="kw">in</span> forecasters}</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> tri, tei <span class="kw">in</span> tscv.split(y):</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>        tr, te <span class="op">=</span> y.iloc[tri], y.iloc[tei]</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> name, fn <span class="kw">in</span> forecasters.items():</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>            fc <span class="op">=</span> fn(tr, h)</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>            acc[name][<span class="st">"RMSE"</span>].append(rmse(te, fc))</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>            acc[name][<span class="st">"MASE"</span>].append(mase(te, fc, tr, m))</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>    out <span class="op">=</span> []</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> name, d <span class="kw">in</span> acc.items():</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>        out.append({<span class="st">"model"</span>: name,</span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"RMSE_mean"</span>: <span class="bu">round</span>(np.mean(d[<span class="st">"RMSE"</span>]), <span class="dv">2</span>),</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"RMSE_std"</span>:  <span class="bu">round</span>(np.std(d[<span class="st">"RMSE"</span>]), <span class="dv">2</span>),</span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"MASE_mean"</span>: <span class="bu">round</span>(np.mean(d[<span class="st">"MASE"</span>]), <span class="dv">3</span>)})</span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> pd.DataFrame(out).sort_values(<span class="st">"MASE_mean"</span>).reset_index(drop<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>board <span class="op">=</span> backtest(FORECASTERS, y, n_splits<span class="op">=</span><span class="dv">6</span>, h<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>board</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="10">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">model</th>
+<th data-quarto-table-cell-role="th">RMSE_mean</th>
+<th data-quarto-table-cell-role="th">RMSE_std</th>
+<th data-quarto-table-cell-role="th">MASE_mean</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>Drift</td>
+<td>6.97</td>
+<td>7.39</td>
+<td>0.692</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>Naive</td>
+<td>7.14</td>
+<td>7.71</td>
+<td>0.705</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>ARIMA</td>
+<td>7.75</td>
+<td>7.12</td>
+<td>0.773</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>ETS</td>
+<td>8.32</td>
+<td>6.44</td>
+<td>0.825</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>SeasonalNaive</td>
+<td>9.36</td>
+<td>7.96</td>
+<td>0.939</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>Read this against the single-split verdict from Parts 3–5. Over <strong>six</strong> folds:</p>
+<ul>
+<li>Every model’s <strong>MASE &lt; 1</strong>, so all of them beat the in-sample seasonal-naive benchmark on average — a far kinder picture than the one unlucky 2020–21 window suggested.</li>
+<li><strong>Drift</strong> still leads, but <strong>ETS and ARIMA are now clearly competitive</strong>, not the also-rans they appeared to be. The single split had <em>defamed</em> them.</li>
+<li>The <strong>RMSE spread</strong> (<code>RMSE_std</code>) is large — confirming numerically that any one fold could have told a very different story.</li>
+</ul>
+<p>This is the whole lesson of Part 6: the <strong>procedure</strong> changed the conclusion without changing a single model.</p>
+</section>
+<section id="leakage-traps-how-good-scores-go-wrong" class="level2">
+<h2 class="anchored" data-anchor-id="leakage-traps-how-good-scores-go-wrong">5. Leakage traps — how good scores go wrong</h2>
+<p>Cross-validation only protects you if <strong>no information flows from the future (or the test set) into training</strong>. Leakage produces scores that look great and collapse in production. The time-series-specific traps:</p>
+<ol type="1">
+<li><strong>Shuffling / random k-fold</strong> — puts future rows in the training set. Always forbidden for temporal data.</li>
+<li><strong>Features that peek forward</strong> — centered rolling windows, or any feature computed with values at or after the prediction time.</li>
+<li><strong>Preprocessing fit on all data</strong> — scalers, imputers, feature selection, or target encoders fit <strong>before</strong> the split see the test set. Fit them <strong>inside</strong> each fold, on training data only.</li>
+<li><strong>Lookahead in tuning</strong> — choosing hyperparameters on the same data you report.</li>
+<li><strong>No gap</strong> — when features use a k-length window, leave a <strong>purge/embargo</strong> gap so train and test don’t overlap through the feature.</li>
+</ol>
+<p>We demonstrate trap #2 concretely — the same model, honest vs.&nbsp;leaky features.</p>
+<div id="56a8ba0f" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T20:04:08.388972Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T20:04:08.388816Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T20:04:08.419670Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T20:04:08.418855Z&quot;}}" data-execution_count="11">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># honest: trailing rolling mean (ends at t-1). leaky: centered mean (includes t &amp; future)</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>lags <span class="op">=</span> pd.concat([y.shift(k) <span class="cf">for</span> k <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>, <span class="dv">4</span>)], axis<span class="op">=</span><span class="dv">1</span>)<span class="op">;</span> lags.columns <span class="op">=</span> [<span class="st">"lag1"</span>,<span class="st">"lag2"</span>,<span class="st">"lag3"</span>]</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>trailing <span class="op">=</span> y.shift(<span class="dv">1</span>).rolling(<span class="dv">6</span>).mean().rename(<span class="st">"trailing_ma"</span>)</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>centered <span class="op">=</span> y.rolling(<span class="dv">7</span>, center<span class="op">=</span><span class="va">True</span>).mean().rename(<span class="st">"centered_ma"</span>)   <span class="co"># LEAKS the future</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> ts_cv_rmse(Xcols):</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    dat <span class="op">=</span> pd.concat([Xcols, y.rename(<span class="st">"y"</span>)], axis<span class="op">=</span><span class="dv">1</span>).dropna()</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    X, yy <span class="op">=</span> dat.iloc[:, :<span class="op">-</span><span class="dv">1</span>], dat[<span class="st">"y"</span>]</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>    errs <span class="op">=</span> [rmse(yy.iloc[te], LinearRegression().fit(X.iloc[tr], yy.iloc[tr]).predict(X.iloc[te]))</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> tr, te <span class="kw">in</span> TimeSeriesSplit(n_splits<span class="op">=</span><span class="dv">5</span>).split(X)]</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> np.mean(errs)</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>honest <span class="op">=</span> ts_cv_rmse(pd.concat([lags, trailing], axis<span class="op">=</span><span class="dv">1</span>))</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>leaky  <span class="op">=</span> ts_cv_rmse(pd.concat([lags, centered], axis<span class="op">=</span><span class="dv">1</span>))</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Honest features (trailing MA): CV RMSE = </span><span class="sc">{</span>honest<span class="sc">:.3f}</span><span class="ss">"</span>)</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Leaky  features (centered MA): CV RMSE = </span><span class="sc">{</span>leaky<span class="sc">:.3f}</span><span class="ss">"</span>)</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"=&gt; leakage makes the model look </span><span class="sc">{</span>honest<span class="op">/</span>leaky<span class="sc">:.1f}</span><span class="ss">× better than it really is"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Honest features (trailing MA): CV RMSE = 2.497
+Leaky  features (centered MA): CV RMSE = 1.566
+=&gt; leakage makes the model look 1.6× better than it really is</code></pre>
+</div>
+</div>
+<p>A centered moving average quietly folds each month’s own value (and its neighbours) into the feature, so the model “predicts” what it has effectively already seen — CV RMSE drops by a third, an illusion that would evaporate the moment the model met genuinely future data it can’t peek at. The fix is trivial (use only trailing windows) but the bug is invisible unless you look for it.</p>
+<blockquote class="blockquote">
+<p><strong>A note on shuffling.</strong> For purely <em>backward-looking</em> lag features the numeric penalty from random k-fold can be small (each row still only sees its own past), which lulls people into thinking it’s fine. It is not: the moment a feature or a preprocessing step carries cross-sectional information, random folds leak heavily. Use <code>TimeSeriesSplit</code>, never <code>KFold(shuffle=True)</code>, on temporal data — full stop.</p>
+</blockquote>
+</section>
+<section id="multi-step-forecasting-strategies" class="level2">
+<h2 class="anchored" data-anchor-id="multi-step-forecasting-strategies">6. Multi-step forecasting strategies</h2>
+<p>We’ve been forecasting 12–24 steps at once. <em>How</em> a model produces a multi-step path matters, especially for the ML models of Part 7 that natively predict only <strong>one</strong> step. Three strategies:</p>
+<ul>
+<li><strong>Recursive (iterated)</strong> — train one 1-step model; feed each prediction back in as an input to predict the next step. Simple and data-efficient, but <strong>errors compound</strong> as predictions feed on predictions.</li>
+<li><strong>Direct</strong> — train a <strong>separate model for each horizon</strong> h (predict <span class="math inline">\(y_{t+h}\)</span> directly from time-t features). No error accumulation, but you fit <em>h</em> models and ignore dependencies between horizons.</li>
+<li><strong>DirRec</strong> — a hybrid: a model per horizon, but each is allowed to use the previous horizons’ predictions as extra inputs.</li>
+</ul>
+<p>We contrast recursive vs.&nbsp;direct with a simple lag-feature linear model over a 24-month horizon.</p>
+<div id="dde3ee53" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T20:04:08.421173Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T20:04:08.420950Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T20:04:08.705157Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T20:04:08.704142Z&quot;}}" data-execution_count="12">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>h_test <span class="op">=</span> <span class="dv">24</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>tr, te <span class="op">=</span> y.iloc[:<span class="op">-</span>h_test], y.iloc[<span class="op">-</span>h_test:]</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>nlags <span class="op">=</span> <span class="dv">12</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="co"># recursive: one 1-step model, iterate</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>Xr <span class="op">=</span> pd.concat([tr.shift(k) <span class="cf">for</span> k <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>, nlags<span class="op">+</span><span class="dv">1</span>)], axis<span class="op">=</span><span class="dv">1</span>).dropna()</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>Xr.columns <span class="op">=</span> [<span class="ss">f"lag</span><span class="sc">{</span>k<span class="sc">}</span><span class="ss">"</span> <span class="cf">for</span> k <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>, nlags<span class="op">+</span><span class="dv">1</span>)]</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>one_step <span class="op">=</span> LinearRegression().fit(Xr, tr.loc[Xr.index])</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>hist, rec <span class="op">=</span> <span class="bu">list</span>(tr.values), []</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(h_test):</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>    feat <span class="op">=</span> np.array(hist[<span class="op">-</span>nlags:][::<span class="op">-</span><span class="dv">1</span>]).reshape(<span class="dv">1</span>, <span class="op">-</span><span class="dv">1</span>)</span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>    p <span class="op">=</span> one_step.predict(feat)[<span class="dv">0</span>]<span class="op">;</span> rec.append(p)<span class="op">;</span> hist.append(p)</span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a><span class="co"># direct: one model per horizon</span></span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>direct <span class="op">=</span> []</span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> hz <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>, h_test<span class="op">+</span><span class="dv">1</span>):</span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>    Xd <span class="op">=</span> pd.concat([tr.shift(k) <span class="cf">for</span> k <span class="kw">in</span> <span class="bu">range</span>(nlags)], axis<span class="op">=</span><span class="dv">1</span>)<span class="op">;</span> Xd.columns<span class="op">=</span>[<span class="ss">f"l</span><span class="sc">{</span>k<span class="sc">}</span><span class="ss">"</span> <span class="cf">for</span> k <span class="kw">in</span> <span class="bu">range</span>(nlags)]</span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a>    yd <span class="op">=</span> tr.shift(<span class="op">-</span>hz)</span>
+<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a>    d <span class="op">=</span> pd.concat([Xd, yd.rename(<span class="st">"y"</span>)], axis<span class="op">=</span><span class="dv">1</span>).dropna()</span>
+<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a>    md_ <span class="op">=</span> LinearRegression().fit(d.iloc[:, :<span class="op">-</span><span class="dv">1</span>], d[<span class="st">"y"</span>])</span>
+<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a>    direct.append(md_.predict(tr.iloc[<span class="op">-</span>nlags:].values[::<span class="op">-</span><span class="dv">1</span>].reshape(<span class="dv">1</span>, <span class="op">-</span><span class="dv">1</span>))[<span class="dv">0</span>])</span>
+<span id="cb16-22"><a href="#cb16-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-23"><a href="#cb16-23" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Recursive strategy: RMSE = </span><span class="sc">{</span>rmse(te, rec)<span class="sc">:.2f}</span><span class="ss">"</span>)</span>
+<span id="cb16-24"><a href="#cb16-24" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Direct    strategy: RMSE = </span><span class="sc">{</span>rmse(te, direct)<span class="sc">:.2f}</span><span class="ss">"</span>)</span>
+<span id="cb16-25"><a href="#cb16-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-26"><a href="#cb16-26" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">11</span>, <span class="fl">4.2</span>))</span>
+<span id="cb16-27"><a href="#cb16-27" aria-hidden="true" tabindex="-1"></a>ax.plot(tr.index[<span class="op">-</span><span class="dv">24</span>:], tr.iloc[<span class="op">-</span><span class="dv">24</span>:], color<span class="op">=</span>PALETTE[<span class="dv">5</span>], label<span class="op">=</span><span class="st">"train"</span>)</span>
+<span id="cb16-28"><a href="#cb16-28" aria-hidden="true" tabindex="-1"></a>ax.plot(te.index, te, color<span class="op">=</span><span class="st">"black"</span>, lw<span class="op">=</span><span class="fl">2.2</span>, label<span class="op">=</span><span class="st">"actual"</span>)</span>
+<span id="cb16-29"><a href="#cb16-29" aria-hidden="true" tabindex="-1"></a>ax.plot(te.index, rec, color<span class="op">=</span>PALETTE[<span class="dv">0</span>], ls<span class="op">=</span><span class="st">"--"</span>, label<span class="op">=</span><span class="st">"recursive"</span>)</span>
+<span id="cb16-30"><a href="#cb16-30" aria-hidden="true" tabindex="-1"></a>ax.plot(te.index, direct, color<span class="op">=</span>PALETTE[<span class="dv">1</span>], ls<span class="op">=</span><span class="st">"--"</span>, label<span class="op">=</span><span class="st">"direct"</span>)</span>
+<span id="cb16-31"><a href="#cb16-31" aria-hidden="true" tabindex="-1"></a>ax.axvline(te.index[<span class="dv">0</span>], color<span class="op">=</span><span class="st">"grey"</span>, lw<span class="op">=</span><span class="dv">1</span>, ls<span class="op">=</span><span class="st">":"</span>)</span>
+<span id="cb16-32"><a href="#cb16-32" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"Recursive vs. direct multi-step forecasts (lag-feature linear model)"</span>)</span>
+<span id="cb16-33"><a href="#cb16-33" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">"index"</span>)<span class="op">;</span> ax.legend(frameon<span class="op">=</span><span class="va">False</span>, ncol<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb16-34"><a href="#cb16-34" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()<span class="op">;</span> plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Recursive strategy: RMSE = 22.27
+Direct    strategy: RMSE = 21.89</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="part-06-evaluation-backtesting_files/figure-html/cell-13-output-2.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>On this hard window the two are close, with <strong>direct</strong> slightly ahead — typical when the horizon is long enough that recursive error-compounding starts to bite. There’s no universal winner: recursive is simpler and often excellent at short horizons; direct is safer at long ones but costs <em>h</em> models. These strategies are exactly how we’ll turn the regressors of <strong>Part 7</strong> into forecasters.</p>
+</section>
+<section id="doing-this-with-sktime" class="level2">
+<h2 class="anchored" data-anchor-id="doing-this-with-sktime">7. Doing this with <code>sktime</code></h2>
+<p>Rolling your own backtest (as above) is the best way to <em>understand</em> it; for production, <strong><code>sktime</code></strong> provides tested splitters, metrics, and a unified forecaster API so you don’t re-implement the loop. Its <code>evaluate</code> runs a walk-forward backtest in one call.</p>
+<div id="e36ca3b7" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T20:04:08.707470Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T20:04:08.706816Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T20:04:09.326966Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T20:04:09.326001Z&quot;}}" data-execution_count="13">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sktime.forecasting.naive <span class="im">import</span> NaiveForecaster</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sktime.forecasting.model_selection <span class="im">import</span> ExpandingWindowSplitter</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sktime.forecasting.model_evaluation <span class="im">import</span> evaluate</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sktime.performance_metrics.forecasting <span class="im">import</span> MeanAbsoluteScaledError</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>cv <span class="op">=</span> ExpandingWindowSplitter(initial_window<span class="op">=</span><span class="dv">240</span>, step_length<span class="op">=</span><span class="dv">12</span>, fh<span class="op">=</span><span class="bu">list</span>(<span class="bu">range</span>(<span class="dv">1</span>, <span class="dv">13</span>)))</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>scorer <span class="op">=</span> MeanAbsoluteScaledError()</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>sk_out <span class="op">=</span> evaluate(forecaster<span class="op">=</span>NaiveForecaster(strategy<span class="op">=</span><span class="st">"drift"</span>), y<span class="op">=</span>y, cv<span class="op">=</span>cv,</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>                  scoring<span class="op">=</span>scorer, return_data<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"sktime walk-forward backtest of drift forecaster:"</span>)</span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>sk_out[[<span class="st">"test_MeanAbsoluteScaledError"</span>, <span class="st">"len_train_window"</span>, <span class="st">"cutoff"</span>]].<span class="bu">round</span>(<span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>sktime walk-forward backtest of drift forecaster:</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="13">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">test_MeanAbsoluteScaledError</th>
+<th data-quarto-table-cell-role="th">len_train_window</th>
+<th data-quarto-table-cell-role="th">cutoff</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>4.861</td>
+<td>240</td>
+<td>2011-12-01</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>5.459</td>
+<td>252</td>
+<td>2012-12-01</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>3.086</td>
+<td>264</td>
+<td>2013-12-01</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>6.745</td>
+<td>276</td>
+<td>2014-12-01</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>3.308</td>
+<td>288</td>
+<td>2015-12-01</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">5</th>
+<td>0.919</td>
+<td>300</td>
+<td>2016-12-01</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">6</th>
+<td>2.236</td>
+<td>312</td>
+<td>2017-12-01</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">7</th>
+<td>0.885</td>
+<td>324</td>
+<td>2018-12-01</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">8</th>
+<td>2.775</td>
+<td>336</td>
+<td>2019-12-01</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p><code>sktime</code> also offers <code>ForecastingGridSearchCV</code> (tune within the backtest, no leakage), a large library of forecasters under one interface, and probabilistic scoring — worth adopting once the concepts above are second nature.</p>
+</section>
+<section id="exercises" class="level2">
+<h2 class="anchored" data-anchor-id="exercises">8. Exercises</h2>
+<ol type="1">
+<li><strong>Fragility elsewhere.</strong> Repeat the Section 1 window sweep for <code>Rice_Price</code>. Is the single-split score as unstable as for the Food Price Index?</li>
+<li><strong>Metric disagreement.</strong> Find a forecaster and window where MAE and RMSE rank two models in <em>opposite</em> order. What does that tell you about the errors?</li>
+<li><strong>Sliding vs expanding.</strong> Re-run the <code>backtest</code> with a fixed <code>max_train_size</code> (sliding). Does limiting history help or hurt on this series?</li>
+<li><strong>Purge/embargo.</strong> With a 6-month rolling feature, add a 6-month gap between train and test in each fold. Does the honest score change?</li>
+<li><strong>Direct vs recursive.</strong> Compare the two strategies at h = 1, 3, 6, 12, 24. At what horizon does direct overtake recursive here?</li>
+</ol>
+<div id="1c173c28" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T20:04:09.328734Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T20:04:09.328549Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T20:04:09.371475Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T20:04:09.370509Z&quot;}}" data-execution_count="14">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Solution to Exercise 5 (setup) ---</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> strat_rmse(h_test):</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>    tr, te <span class="op">=</span> y.iloc[:<span class="op">-</span>h_test], y.iloc[<span class="op">-</span>h_test:]</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>    Xr <span class="op">=</span> pd.concat([tr.shift(k) <span class="cf">for</span> k <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>, <span class="dv">13</span>)], axis<span class="op">=</span><span class="dv">1</span>).dropna()</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>    om <span class="op">=</span> LinearRegression().fit(Xr, tr.loc[Xr.index])</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>    hist, rec <span class="op">=</span> <span class="bu">list</span>(tr.values), []</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(h_test):</span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>        rec.append(om.predict(np.array(hist[<span class="op">-</span><span class="dv">12</span>:][::<span class="op">-</span><span class="dv">1</span>]).reshape(<span class="dv">1</span>,<span class="op">-</span><span class="dv">1</span>))[<span class="dv">0</span>])<span class="op">;</span> hist.append(rec[<span class="op">-</span><span class="dv">1</span>])</span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>    Xd <span class="op">=</span> pd.concat([tr.shift(k) <span class="cf">for</span> k <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">12</span>)], axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>    dd <span class="op">=</span> pd.concat([Xd, tr.shift(<span class="op">-</span>h_test).rename(<span class="st">"y"</span>)], axis<span class="op">=</span><span class="dv">1</span>).dropna()</span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>    dm <span class="op">=</span> LinearRegression().fit(dd.iloc[:, :<span class="op">-</span><span class="dv">1</span>], dd[<span class="st">"y"</span>])</span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>    direct_h <span class="op">=</span> dm.predict(tr.iloc[<span class="op">-</span><span class="dv">12</span>:].values[::<span class="op">-</span><span class="dv">1</span>].reshape(<span class="dv">1</span>,<span class="op">-</span><span class="dv">1</span>))[<span class="dv">0</span>]</span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">round</span>(rmse(te, rec),<span class="dv">2</span>), <span class="bu">round</span>(<span class="bu">abs</span>(te.iloc[<span class="op">-</span><span class="dv">1</span>]<span class="op">-</span>direct_h),<span class="dv">2</span>)</span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> hz <span class="kw">in</span> [<span class="dv">1</span>, <span class="dv">3</span>, <span class="dv">6</span>, <span class="dv">12</span>, <span class="dv">24</span>]:</span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>    r, d <span class="op">=</span> strat_rmse(hz)<span class="op">;</span> <span class="bu">print</span>(<span class="ss">f"h=</span><span class="sc">{</span>hz<span class="sc">:2d}</span><span class="ss">: recursive RMSE=</span><span class="sc">{</span>r<span class="sc">:6.2f}</span><span class="ss"> | direct |err@h|=</span><span class="sc">{</span>d<span class="sc">:6.2f}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>h= 1: recursive RMSE=  0.97 | direct |err@h|=  0.97
+h= 3: recursive RMSE=  7.51 | direct |err@h|=  7.77
+h= 6: recursive RMSE=  7.79 | direct |err@h|= 10.18
+h=12: recursive RMSE= 22.28 | direct |err@h|= 27.02
+h=24: recursive RMSE= 22.27 | direct |err@h|= 36.83</code></pre>
+</div>
+</div>
+</section>
+<section id="key-takeaways" class="level2">
+<h2 class="anchored" data-anchor-id="key-takeaways">9. Key takeaways</h2>
+<ul>
+<li>A <strong>single train/test split is a sample of size one</strong>; on non-stationary data the score can swing by 10× depending on the window. Never conclude from one split.</li>
+<li><strong>Baselines</strong> (naive, seasonal-naive, drift) are the hurdle <em>and</em> the anchor — the seasonal-naive error is the denominator of <strong>MASE</strong>.</li>
+<li>Choose metrics deliberately: <strong>MAE/RMSE</strong> (scale-dependent), <strong>MAPE/sMAPE</strong> (percentage, with asymmetry/zero pitfalls), <strong>MASE</strong> (scale-free, interpretable, the recommended default), and <strong>pinball loss</strong> for probabilistic forecasts.</li>
+<li><strong>Walk-forward cross-validation</strong> (expanding or sliding windows) turns one fragile number into a distribution — and here it <em>reversed</em> the Parts 3–5 verdict, showing ETS/ARIMA were competitive all along.</li>
+<li>Guard against <strong>leakage</strong>: no shuffling, no forward-peeking features, fit preprocessing inside folds, and purge/embargo around windowed features.</li>
+<li><strong>Recursive vs.&nbsp;direct vs.&nbsp;DirRec</strong> are the multi-step strategies that turn any one-step regressor into a forecaster — the hinge to the machine-learning parts.</li>
+</ul>
+<section id="whats-next-part-7-feature-engineering-the-ml-reduction" class="level3">
+<h3 class="anchored" data-anchor-id="whats-next-part-7-feature-engineering-the-ml-reduction">What’s next — Part 7: Feature Engineering &amp; the ML Reduction</h3>
+<p>With rigorous evaluation in hand, Part 7 reframes forecasting as <strong>supervised learning</strong>: turning a series into a feature matrix (lags, rolling stats, calendar and Fourier terms, exogenous variables), so that any regressor — and then the gradient-boosting and deep models of Parts 8–10 — can forecast, <em>scored with the backtesting discipline established here.</em></p>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+    const viewSource = window.document.getElementById('quarto-view-source') ||
+                       window.document.getElementById('quarto-code-tools-source');
+    if (viewSource) {
+      const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+      viewSource.addEventListener("click", function(e) {
+        if (sourceUrl) {
+          // rstudio viewer pane
+          if (/\bcapabilities=\b/.test(window.location)) {
+            window.open(sourceUrl);
+          } else {
+            window.location.href = sourceUrl;
+          }
+        } else {
+          const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+          modal.show();
+        }
+        return false;
+      });
+    }
+    function toggleCodeHandler(show) {
+      return function(e) {
+        const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+        for (let i=0; i<detailsSrc.length; i++) {
+          const details = detailsSrc[i].parentElement;
+          if (show) {
+            details.open = true;
+          } else {
+            details.removeAttribute("open");
+          }
+        }
+        const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+        const fromCls = show ? "hidden" : "unhidden";
+        const toCls = show ? "unhidden" : "hidden";
+        for (let i=0; i<cellCodeDivs.length; i++) {
+          const codeDiv = cellCodeDivs[i];
+          if (codeDiv.classList.contains(fromCls)) {
+            codeDiv.classList.remove(fromCls);
+            codeDiv.classList.add(toCls);
+          } 
+        }
+        return false;
+      }
+    }
+    const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+    if (hideAllCode) {
+      hideAllCode.addEventListener("click", toggleCodeHandler(false));
+    }
+    const showAllCode = window.document.getElementById("quarto-show-all-code");
+    if (showAllCode) {
+      showAllCode.addEventListener("click", toggleCodeHandler(true));
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/zia207\.github\.io\/Time-Series-Analysis-Python");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../notebooks/part-05-advanced-multivariate.html" class="pagination-link" aria-label="5 · Advanced &amp; Multivariate Models">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">5 · Advanced &amp; Multivariate Models</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../notebooks/part-07-feature-engineering.html" class="pagination-link" aria-label="7 · Feature Engineering &amp; the ML Reduction">
+        <span class="nav-page-text">7 · Feature Engineering &amp; the ML Reduction</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+<p>Time Series Analysis in Python · a 12-part tutorial</p>
+<div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/zia207/Time-Series-Analysis-Python/blob/main/notebooks/part-06-evaluation-backtesting.ipynb" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/zia207/Time-Series-Analysis-Python/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+<script src="../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>

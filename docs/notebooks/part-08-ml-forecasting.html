@@ -1,0 +1,1541 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Part 8 — Machine Learning Forecasting – Time Series Analysis in Python</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../notebooks/part-09-deep-learning.html" rel="next">
+<link href="../notebooks/part-07-feature-engineering.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-8b4baf804e461d9b72633f0de59a0cac.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-d5db10917c6d76a3e5f935fb4eb5ba92.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+<script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="nav-sidebar docked nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">Time Series Analysis in Python</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link active" href="../index.html" aria-current="page"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-parts" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Parts</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-parts">    
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-01-foundations.html">
+ <span class="dropdown-text">1 · Foundations &amp; Data Handling</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-02-stationarity.html">
+ <span class="dropdown-text">2 · Statistical Properties &amp; Decomposition</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-03-smoothing.html">
+ <span class="dropdown-text">3 · Smoothing &amp; Exponential Methods</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-04-arima.html">
+ <span class="dropdown-text">4 · The ARIMA Family</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-05-advanced-multivariate.html">
+ <span class="dropdown-text">5 · Advanced &amp; Multivariate Models</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-06-evaluation-backtesting.html">
+ <span class="dropdown-text">6 · Evaluation, Backtesting &amp; Baselines</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-07-feature-engineering.html">
+ <span class="dropdown-text">7 · Feature Engineering &amp; the ML Reduction</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-08-ml-forecasting.html">
+ <span class="dropdown-text">8 · Machine Learning Forecasting</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-09-deep-learning.html">
+ <span class="dropdown-text">9 · Deep Learning for Sequences</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-10-modern-dl.html">
+ <span class="dropdown-text">10 · Modern Deep Architectures</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-11-specialized-topics.html">
+ <span class="dropdown-text">11 · Specialized Topics</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-12-deployment-capstone.html">
+ <span class="dropdown-text">12 · Deployment &amp; Capstone</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+    <a href="https://github.com/zia207/Time-Series-Analysis-Python" title="Source" class="quarto-navigation-tool px-1" aria-label="Source"><i class="bi bi-github"></i></a>
+  <a href="" class="quarto-reader-toggle quarto-navigation-tool px-1" onclick="window.quartoToggleReader(); return false;" title="Toggle reader mode">
+  <div class="quarto-reader-toggle-btn">
+  <i class="bi"></i>
+  </div>
+</a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../notebooks/part-07-feature-engineering.html">Machine Learning</a></li><li class="breadcrumb-item"><a href="../notebooks/part-08-ml-forecasting.html">8 · Machine Learning Forecasting</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Foundations</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-01-foundations.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">1 · Foundations &amp; Data Handling</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-02-stationarity.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">2 · Statistical Properties &amp; Decomposition</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Classical Forecasting</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-03-smoothing.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">3 · Smoothing &amp; Exponential Methods</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-04-arima.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4 · The ARIMA Family</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-05-advanced-multivariate.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">5 · Advanced &amp; Multivariate Models</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+ <span class="menu-text">Rigorous Evaluation</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-06-evaluation-backtesting.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">6 · Evaluation, Backtesting &amp; Baselines</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Machine Learning</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-07-feature-engineering.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">7 · Feature Engineering &amp; the ML Reduction</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-08-ml-forecasting.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">8 · Machine Learning Forecasting</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
+ <span class="menu-text">Deep Learning</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-09-deep-learning.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">9 · Deep Learning for Sequences</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-10-modern-dl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">10 · Modern Deep Architectures</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true">
+ <span class="menu-text">Frontiers &amp; Practice</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-11-specialized-topics.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">11 · Specialized Topics</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-12-deployment-capstone.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">12 · Deployment &amp; Capstone</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#what-you-will-learn" id="toc-what-you-will-learn" class="nav-link active" data-scroll-target="#what-you-will-learn">What you will learn</a></li>
+  <li><a href="#dataset" id="toc-dataset" class="nav-link" data-scroll-target="#dataset">Dataset</a></li>
+  <li><a href="#setup-data-all-nine-series-and-helpers" id="toc-setup-data-all-nine-series-and-helpers" class="nav-link" data-scroll-target="#setup-data-all-nine-series-and-helpers">0. Setup, data (all nine series), and helpers</a></li>
+  <li><a href="#two-ideas-that-make-ml-forecasting-work" id="toc-two-ideas-that-make-ml-forecasting-work" class="nav-link" data-scroll-target="#two-ideas-that-make-ml-forecasting-work">1. Two ideas that make ML forecasting work</a></li>
+  <li><a href="#regularized-linear-models" id="toc-regularized-linear-models" class="nav-link" data-scroll-target="#regularized-linear-models">2. Regularized linear models</a></li>
+  <li><a href="#tree-ensembles-and-gradient-boosting" id="toc-tree-ensembles-and-gradient-boosting" class="nav-link" data-scroll-target="#tree-ensembles-and-gradient-boosting">3. Tree ensembles and gradient boosting</a></li>
+  <li><a href="#multi-step-forecasting-with-skforecast" id="toc-multi-step-forecasting-with-skforecast" class="nav-link" data-scroll-target="#multi-step-forecasting-with-skforecast">4. Multi-step forecasting with <code>skforecast</code></a></li>
+  <li><a href="#global-vs.-local-models-the-ml-reduction-payoff" id="toc-global-vs.-local-models-the-ml-reduction-payoff" class="nav-link" data-scroll-target="#global-vs.-local-models-the-ml-reduction-payoff">5. Global vs.&nbsp;local models — the ML-reduction payoff</a></li>
+  <li><a href="#global-models-the-easy-way-mlforecast" id="toc-global-models-the-easy-way-mlforecast" class="nav-link" data-scroll-target="#global-models-the-easy-way-mlforecast">6. Global models the easy way — <code>mlforecast</code></a></li>
+  <li><a href="#synthesis-benchmark-food-price-index-24-month-hold-out" id="toc-synthesis-benchmark-food-price-index-24-month-hold-out" class="nav-link" data-scroll-target="#synthesis-benchmark-food-price-index-24-month-hold-out">7. Synthesis benchmark — Food Price Index, 24-month hold-out</a></li>
+  <li><a href="#exercises" id="toc-exercises" class="nav-link" data-scroll-target="#exercises">8. Exercises</a></li>
+  <li><a href="#key-takeaways" id="toc-key-takeaways" class="nav-link" data-scroll-target="#key-takeaways">9. Key takeaways</a>
+  <ul class="collapse">
+  <li><a href="#whats-next-part-9-deep-learning-for-sequences" id="toc-whats-next-part-9-deep-learning-for-sequences" class="nav-link" data-scroll-target="#whats-next-part-9-deep-learning-for-sequences">What’s next — Part 9: Deep Learning for Sequences</a></li>
+  </ul></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/zia207/Time-Series-Analysis-Python/blob/main/notebooks/part-08-ml-forecasting.ipynb" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/zia207/Time-Series-Analysis-Python/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../notebooks/part-07-feature-engineering.html">Machine Learning</a></li><li class="breadcrumb-item"><a href="../notebooks/part-08-ml-forecasting.html">8 · Machine Learning Forecasting</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">Part 8 — Machine Learning Forecasting</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p><strong>Series:</strong> <em>Time Series Analysis in Python — from Statistical Modeling to Machine Learning</em></p>
+<p>Part 7 turned a series into a feature matrix. Part 8 puts <strong>real learners</strong> on it — regularized linear models and, above all, <strong>gradient-boosted trees</strong> (XGBoost, LightGBM, CatBoost), the workhorses of applied forecasting. It also introduces the single most important idea for making machine learning <em>pay off</em> on time series: the <strong>global model</strong> — one model trained across <strong>many</strong> series at once. Every model here is scored with the <strong>backtesting discipline</strong> of Part 6.</p>
+<section id="what-you-will-learn" class="level3">
+<h3 class="anchored" data-anchor-id="what-you-will-learn">What you will learn</h3>
+<ol type="1">
+<li><strong>Regularized linear</strong> models (Ridge, Lasso) on engineered features</li>
+<li><strong>Tree ensembles &amp; gradient boosting</strong> — Random Forest, XGBoost, LightGBM, CatBoost</li>
+<li><strong>Direct vs.&nbsp;recursive</strong> multi-step in practice, via <strong><code>skforecast</code></strong></li>
+<li><strong>Global (cross-series) vs.&nbsp;local (per-series)</strong> models — the ML-reduction payoff</li>
+<li>Global-model tooling with <strong><code>mlforecast</code></strong></li>
+<li>A synthesis benchmark against the classical winners of Parts 3–5</li>
+</ol>
+</section>
+<section id="dataset" class="level3">
+<h3 class="anchored" data-anchor-id="dataset">Dataset</h3>
+<p>Still <code>monthly_price.csv</code>, but now we use <strong>all nine series</strong> — because global models need many series to shine. New libraries: <code>lightgbm</code>, <code>xgboost</code>, <code>catboost</code>, <code>skforecast</code>, <code>mlforecast</code>.</p>
+</section>
+<section id="setup-data-all-nine-series-and-helpers" class="level2">
+<h2 class="anchored" data-anchor-id="setup-data-all-nine-series-and-helpers">0. Setup, data (all nine series), and helpers</h2>
+<div id="0a206ee0" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T21:19:42.086590Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T21:19:42.086432Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T21:19:50.308196Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T21:19:50.307054Z&quot;}}" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>warnings.simplefilter(<span class="st">"ignore"</span>)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> TimeSeriesSplit</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> Ridge, Lasso</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.ensemble <span class="im">import</span> RandomForestRegressor</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.pipeline <span class="im">import</span> make_pipeline</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> StandardScaler</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> lightgbm <span class="im">import</span> LGBMRegressor</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> xgboost <span class="im">import</span> XGBRegressor</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> catboost <span class="im">import</span> CatBoostRegressor</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>plt.rcParams.update({</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    <span class="st">"figure.figsize"</span>: (<span class="dv">11</span>, <span class="fl">4.2</span>), <span class="st">"figure.dpi"</span>: <span class="dv">110</span>,</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    <span class="st">"axes.grid"</span>: <span class="va">True</span>, <span class="st">"grid.alpha"</span>: <span class="fl">0.3</span>,</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    <span class="st">"axes.spines.top"</span>: <span class="va">False</span>, <span class="st">"axes.spines.right"</span>: <span class="va">False</span>,</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    <span class="st">"axes.titlesize"</span>: <span class="dv">13</span>, <span class="st">"axes.titleweight"</span>: <span class="st">"bold"</span>,</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    <span class="st">"font.size"</span>: <span class="dv">11</span>, <span class="st">"lines.linewidth"</span>: <span class="fl">1.6</span>,</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>PALETTE <span class="op">=</span> [<span class="st">"#2b6cb0"</span>, <span class="st">"#c05621"</span>, <span class="st">"#2f855a"</span>, <span class="st">"#6b46c1"</span>, <span class="st">"#b83280"</span>, <span class="st">"#718096"</span>]</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>raw <span class="op">=</span> pd.read_csv(<span class="st">"monthly_price.csv"</span>)</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>dates <span class="op">=</span> pd.to_datetime(raw[<span class="st">"YEAR"</span>].astype(<span class="bu">str</span>) <span class="op">+</span> <span class="st">"-"</span> <span class="op">+</span> raw[<span class="st">"MONTH"</span>], <span class="bu">format</span><span class="op">=</span><span class="st">"%Y-%b"</span>)</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> raw.drop(columns<span class="op">=</span>[<span class="st">"ID"</span>, <span class="st">"YEAR"</span>, <span class="st">"MONTH"</span>, <span class="st">"TIME"</span>]).copy()</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>df.index <span class="op">=</span> dates<span class="op">;</span> df.index.name <span class="op">=</span> <span class="st">"ds"</span><span class="op">;</span> df <span class="op">=</span> df.asfreq(<span class="st">"MS"</span>)</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>SERIES <span class="op">=</span> <span class="bu">list</span>(df.columns)</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>H <span class="op">=</span> <span class="dv">24</span></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> df[<span class="st">"Food_Price_Index"</span>]</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> mae(a, p):  a,p<span class="op">=</span>np.asarray(a),np.asarray(p)<span class="op">;</span> <span class="cf">return</span> np.mean(np.<span class="bu">abs</span>(a <span class="op">-</span> p))</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> rmse(a, p): a,p<span class="op">=</span>np.asarray(a),np.asarray(p)<span class="op">;</span> <span class="cf">return</span> np.sqrt(np.mean((a <span class="op">-</span> p) <span class="op">**</span> <span class="dv">2</span>))</span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> mase(actual, pred, train, m<span class="op">=</span><span class="dv">12</span>):</span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> mae(actual, pred) <span class="op">/</span> np.mean(np.<span class="bu">abs</span>(train.values[m:] <span class="op">-</span> train.values[:<span class="op">-</span>m]))</span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> feature_matrix(s, df<span class="op">=</span><span class="va">None</span>, exog<span class="op">=</span><span class="va">None</span>):</span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>    X <span class="op">=</span> pd.DataFrame(index<span class="op">=</span>s.index)</span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> k <span class="kw">in</span> [<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">6</span>, <span class="dv">12</span>]: X[<span class="ss">f"lag</span><span class="sc">{</span>k<span class="sc">}</span><span class="ss">"</span>] <span class="op">=</span> s.shift(k)</span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>    X[<span class="st">"rmean3"</span>]  <span class="op">=</span> s.shift(<span class="dv">1</span>).rolling(<span class="dv">3</span>).mean()</span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>    X[<span class="st">"rmean12"</span>] <span class="op">=</span> s.shift(<span class="dv">1</span>).rolling(<span class="dv">12</span>).mean()</span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>    X[<span class="st">"rstd3"</span>]   <span class="op">=</span> s.shift(<span class="dv">1</span>).rolling(<span class="dv">3</span>).std()</span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>    mo <span class="op">=</span> s.index.month</span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>    X[<span class="st">"sin"</span>] <span class="op">=</span> np.sin(<span class="dv">2</span><span class="op">*</span>np.pi<span class="op">*</span>mo<span class="op">/</span><span class="dv">12</span>)<span class="op">;</span> X[<span class="st">"cos"</span>] <span class="op">=</span> np.cos(<span class="dv">2</span><span class="op">*</span>np.pi<span class="op">*</span>mo<span class="op">/</span><span class="dv">12</span>)</span>
+<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> exog <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> c <span class="kw">in</span> exog: X[<span class="ss">f"</span><span class="sc">{</span>c<span class="sc">}</span><span class="ss">_lag1"</span>] <span class="op">=</span> df[c].shift(<span class="dv">1</span>)</span>
+<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a>    data <span class="op">=</span> pd.concat([X, s.rename(<span class="st">"y"</span>)], axis<span class="op">=</span><span class="dv">1</span>).dropna()</span>
+<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> data.iloc[:, :<span class="op">-</span><span class="dv">1</span>], data[<span class="st">"y"</span>]</span>
+<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"series:"</span>, SERIES)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>series: ['Urea_Price', 'MP_Price', 'TSP_Price', 'Maize_Price', 'Rice_Price', 'Wheat_Price', 'Food_Price_Index', 'Energy_Price_Index', 'VIX_Index']</code></pre>
+</div>
+</div>
+</section>
+<section id="two-ideas-that-make-ml-forecasting-work" class="level2">
+<h2 class="anchored" data-anchor-id="two-ideas-that-make-ml-forecasting-work">1. Two ideas that make ML forecasting work</h2>
+<p>Naively, “use machine learning” means swapping ARIMA for a random forest. That rarely helps on its own — as Part 7 showed, on a single smooth series a forest mostly <em>recovers persistence</em>. Two ideas change the game:</p>
+<ol type="1">
+<li><strong>Gradient boosting</strong> — an ensemble that fits trees <strong>sequentially</strong>, each new tree correcting the errors of the ones so far. It is the most consistently strong tabular learner, and forecasting-as-regression is a tabular problem.</li>
+<li><strong>Global models</strong> — instead of one model per series, train <strong>a single model across all series at once</strong>. It pools data, learns shared dynamics, and is the reason ML dominates large-scale forecasting (retail, energy, demand) where there are thousands of related series.</li>
+</ol>
+<p>We build up to both, and keep Part 6’s backtesting as the scorekeeper.</p>
+</section>
+<section id="regularized-linear-models" class="level2">
+<h2 class="anchored" data-anchor-id="regularized-linear-models">2. Regularized linear models</h2>
+<p>Linear regression on lag features <em>is</em> an AR model; <strong>regularization</strong> makes it robust when features are many and correlated (lags always are).</p>
+<ul>
+<li><strong>Ridge (L2)</strong> shrinks coefficients smoothly — stable, keeps all features.</li>
+<li><strong>Lasso (L1)</strong> drives some coefficients to <strong>exactly zero</strong> — automatic feature selection, useful when you throw many candidate features at the model.</li>
+</ul>
+<p>Scaling matters for penalized models, so we keep it inside a pipeline (Part 7).</p>
+<div id="5bc4d891" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T21:19:50.310677Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T21:19:50.309998Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T21:19:50.343012Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T21:19:50.342089Z&quot;}}" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>X, yt <span class="op">=</span> feature_matrix(y)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>tr <span class="op">=</span> X.index <span class="op">&lt;</span> df.index[<span class="op">-</span>H]</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>ridge <span class="op">=</span> make_pipeline(StandardScaler(), Ridge(alpha<span class="op">=</span><span class="fl">1.0</span>)).fit(X[tr], yt[tr])</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>lasso <span class="op">=</span> make_pipeline(StandardScaler(), Lasso(alpha<span class="op">=</span><span class="fl">0.5</span>)).fit(X[tr], yt[tr])</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>coefs <span class="op">=</span> pd.DataFrame({<span class="st">"Ridge"</span>: ridge[<span class="op">-</span><span class="dv">1</span>].coef_, <span class="st">"Lasso"</span>: lasso[<span class="op">-</span><span class="dv">1</span>].coef_}, index<span class="op">=</span>X.columns).<span class="bu">round</span>(<span class="dv">3</span>)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Lasso zeroed out"</span>, <span class="bu">int</span>((lasso[<span class="op">-</span><span class="dv">1</span>].coef_ <span class="op">==</span> <span class="dv">0</span>).<span class="bu">sum</span>()), <span class="st">"of"</span>, X.shape[<span class="dv">1</span>], <span class="st">"features:"</span>)</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>coefs</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Lasso zeroed out 9 of 10 features:</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="2">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">Ridge</th>
+<th data-quarto-table-cell-role="th">Lasso</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">lag1</th>
+<td>23.743</td>
+<td>23.696</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">lag2</th>
+<td>-0.536</td>
+<td>0.000</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">lag3</th>
+<td>-5.380</td>
+<td>0.000</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">lag6</th>
+<td>-2.231</td>
+<td>0.000</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">lag12</th>
+<td>0.022</td>
+<td>0.000</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">rmean3</th>
+<td>5.947</td>
+<td>0.000</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">rmean12</th>
+<td>2.477</td>
+<td>0.000</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">rstd3</th>
+<td>-0.012</td>
+<td>0.000</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">sin</th>
+<td>0.204</td>
+<td>0.000</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">cos</th>
+<td>0.322</td>
+<td>0.000</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>Lasso prunes the redundant lags and keeps a sparse, interpretable subset — handy when the feature bank is large. Ridge retains everything but tames the correlated lags. Both are fast, strong baselines that a fancier model must beat.</p>
+</section>
+<section id="tree-ensembles-and-gradient-boosting" class="level2">
+<h2 class="anchored" data-anchor-id="tree-ensembles-and-gradient-boosting">3. Tree ensembles and gradient boosting</h2>
+<p>Trees capture <strong>nonlinearities and interactions</strong> that linear models can’t, and they need no scaling. Two ensembling philosophies:</p>
+<ul>
+<li><strong>Bagging (Random Forest)</strong> — many deep trees on bootstrap samples, averaged. Reduces variance; robust; hard to overfit.</li>
+<li><strong>Boosting</strong> — trees added <strong>sequentially</strong>, each fit to the <strong>residual errors</strong> of the current ensemble, with a learning rate controlling the step size. Reduces bias and usually wins on tabular data. The modern implementations differ in the details:
+<ul>
+<li><strong>XGBoost</strong> — level-wise growth, heavy regularization, the original workhorse.</li>
+<li><strong>LightGBM</strong> — leaf-wise growth, histogram binning; very fast on large data.</li>
+<li><strong>CatBoost</strong> — ordered boosting and native categorical handling; strong defaults.</li>
+</ul></li>
+</ul>
+<p>We compare all of them against the naive benchmark — using <strong>6-fold walk-forward CV</strong> (Part 6), because a single split would mislead us.</p>
+<div id="6a9d7d52" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T21:19:50.345948Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T21:19:50.345533Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T21:19:55.999631Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T21:19:55.998626Z&quot;}}" data-execution_count="3">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> cv_mase(factory, X, yt, n_splits<span class="op">=</span><span class="dv">6</span>, h<span class="op">=</span><span class="dv">12</span>, m<span class="op">=</span><span class="dv">12</span>):</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    tscv <span class="op">=</span> TimeSeriesSplit(n_splits<span class="op">=</span>n_splits, test_size<span class="op">=</span>h)<span class="op">;</span> scores <span class="op">=</span> []</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> tri, tei <span class="kw">in</span> tscv.split(X):</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>        den <span class="op">=</span> np.mean(np.<span class="bu">abs</span>(yt.iloc[tri].values[m:] <span class="op">-</span> yt.iloc[tri].values[:<span class="op">-</span>m]))</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> factory <span class="op">==</span> <span class="st">"naive"</span>:</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>            pred <span class="op">=</span> X.iloc[tei][<span class="st">"lag1"</span>].values</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>            mdl <span class="op">=</span> factory()<span class="op">;</span> mdl.fit(X.iloc[tri], yt.iloc[tri])<span class="op">;</span> pred <span class="op">=</span> mdl.predict(X.iloc[tei])</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>        scores.append(mae(yt.iloc[tei].values, pred) <span class="op">/</span> den)</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> np.mean(scores)</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>learners <span class="op">=</span> {</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Naive"</span>: <span class="st">"naive"</span>,</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Ridge"</span>: <span class="kw">lambda</span>: make_pipeline(StandardScaler(), Ridge(<span class="fl">1.0</span>)),</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>    <span class="st">"RandomForest"</span>: <span class="kw">lambda</span>: RandomForestRegressor(n_estimators<span class="op">=</span><span class="dv">300</span>, random_state<span class="op">=</span><span class="dv">0</span>),</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>    <span class="st">"XGBoost"</span>: <span class="kw">lambda</span>: XGBRegressor(n_estimators<span class="op">=</span><span class="dv">300</span>, learning_rate<span class="op">=</span><span class="fl">0.05</span>, max_depth<span class="op">=</span><span class="dv">3</span>, verbosity<span class="op">=</span><span class="dv">0</span>),</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>    <span class="st">"LightGBM"</span>: <span class="kw">lambda</span>: LGBMRegressor(n_estimators<span class="op">=</span><span class="dv">300</span>, learning_rate<span class="op">=</span><span class="fl">0.05</span>, num_leaves<span class="op">=</span><span class="dv">31</span>, verbose<span class="op">=-</span><span class="dv">1</span>),</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>    <span class="st">"CatBoost"</span>: <span class="kw">lambda</span>: CatBoostRegressor(n_estimators<span class="op">=</span><span class="dv">300</span>, learning_rate<span class="op">=</span><span class="fl">0.05</span>, depth<span class="op">=</span><span class="dv">3</span>, verbose<span class="op">=</span><span class="dv">0</span>),</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>lb <span class="op">=</span> pd.DataFrame({<span class="st">"model"</span>: <span class="bu">list</span>(learners),</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>                   <span class="st">"CV_MASE"</span>: [<span class="bu">round</span>(cv_mase(f, X, yt), <span class="dv">3</span>) <span class="cf">for</span> f <span class="kw">in</span> learners.values()]}</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>                  ).sort_values(<span class="st">"CV_MASE"</span>).reset_index(drop<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>lb</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="3">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">model</th>
+<th data-quarto-table-cell-role="th">CV_MASE</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>Ridge</td>
+<td>0.205</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>Naive</td>
+<td>0.214</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>XGBoost</td>
+<td>0.255</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>RandomForest</td>
+<td>0.264</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>LightGBM</td>
+<td>0.292</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">5</th>
+<td>CatBoost</td>
+<td>0.363</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>The honest result echoes Part 7: on this <strong>single smooth monthly series</strong>, Ridge edges the naive benchmark and the <strong>boosted trees do <em>not</em> beat it</strong> — with only ~330 rows they add variance without finding extra signal. This is not a knock on boosting; it is the correct diagnosis that <em>one low-frequency series is the wrong setting for it</em>. (Note too: a single last-24-months split would have crowned LightGBM — walk-forward CV corrects that illusion, exactly as Part 6 warned.)</p>
+<p>Boosting shines with <strong>more data and more signal</strong>. We create both next — first by going multi-step and recursive, then by going <strong>global</strong>.</p>
+<div id="4b26c985" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T21:19:56.001901Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T21:19:56.001251Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T21:19:56.221626Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T21:19:56.220564Z&quot;}}" data-execution_count="4">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># a quick look at what LightGBM leans on</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>lgbm <span class="op">=</span> LGBMRegressor(n_estimators<span class="op">=</span><span class="dv">400</span>, learning_rate<span class="op">=</span><span class="fl">0.05</span>, num_leaves<span class="op">=</span><span class="dv">31</span>, verbose<span class="op">=-</span><span class="dv">1</span>).fit(X, yt)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>imp <span class="op">=</span> pd.Series(lgbm.feature_importances_, index<span class="op">=</span>X.columns).sort_values(ascending<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">11</span>, <span class="fl">3.8</span>))</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>imp.head(<span class="dv">10</span>).iloc[::<span class="op">-</span><span class="dv">1</span>].plot.barh(ax<span class="op">=</span>ax, color<span class="op">=</span>PALETTE[<span class="dv">2</span>])</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"LightGBM feature importances — Food Price Index (top 10)"</span>)</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">"importance (splits)"</span>)</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()<span class="op">;</span> plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="part-08-ml-forecasting_files/figure-html/cell-5-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<blockquote class="blockquote">
+<p><strong>The extrapolation limit (worth repeating).</strong> Every tree-based model predicts an <strong>average of training targets in a leaf</strong>, so it can <em>never</em> output a value outside its training range. On a trending or shock-prone series that guarantees under-shooting new highs — which is why the 2020–21 surge defeats trees no matter how many features you add. Linear models and neural nets (Part 9) can extrapolate; trees cannot. Choose accordingly.</p>
+</blockquote>
+</section>
+<section id="multi-step-forecasting-with-skforecast" class="level2">
+<h2 class="anchored" data-anchor-id="multi-step-forecasting-with-skforecast">4. Multi-step forecasting with <code>skforecast</code></h2>
+<p>Parts 6–7 built recursive/direct multi-step by hand. <strong><code>skforecast</code></strong> wraps any scikit-learn-style regressor into a forecaster that handles the lag creation and the <strong>recursive</strong> loop for you, and integrates backtesting.</p>
+<div id="eeaccb44" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T21:19:56.223435Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T21:19:56.223264Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T21:19:57.798287Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T21:19:57.796780Z&quot;}}" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> skforecast.recursive <span class="im">import</span> ForecasterRecursive</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>forecaster <span class="op">=</span> ForecasterRecursive(</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    estimator<span class="op">=</span>LGBMRegressor(n_estimators<span class="op">=</span><span class="dv">300</span>, learning_rate<span class="op">=</span><span class="fl">0.05</span>, num_leaves<span class="op">=</span><span class="dv">31</span>, verbose<span class="op">=-</span><span class="dv">1</span>),</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    lags<span class="op">=</span><span class="dv">12</span>,</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>forecaster.fit(y<span class="op">=</span>y.iloc[:<span class="op">-</span>H])</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>lgbm_local <span class="op">=</span> forecaster.predict(steps<span class="op">=</span>H)</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">11</span>, <span class="fl">4.2</span>))</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>ax.plot(y.index[<span class="op">-</span><span class="dv">48</span>:<span class="op">-</span>H], y.iloc[<span class="op">-</span><span class="dv">48</span>:<span class="op">-</span>H], color<span class="op">=</span>PALETTE[<span class="dv">5</span>], label<span class="op">=</span><span class="st">"train"</span>)</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>ax.plot(y.index[<span class="op">-</span>H:], y.iloc[<span class="op">-</span>H:], color<span class="op">=</span><span class="st">"black"</span>, lw<span class="op">=</span><span class="fl">2.2</span>, label<span class="op">=</span><span class="st">"actual"</span>)</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>ax.plot(lgbm_local.index, lgbm_local.values, color<span class="op">=</span>PALETTE[<span class="dv">0</span>], ls<span class="op">=</span><span class="st">"--"</span>, label<span class="op">=</span><span class="st">"LightGBM recursive"</span>)</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>ax.axvline(y.index[<span class="op">-</span>H], color<span class="op">=</span><span class="st">"grey"</span>, lw<span class="op">=</span><span class="dv">1</span>, ls<span class="op">=</span><span class="st">":"</span>)</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"skforecast: recursive LightGBM, 24-month forecast — Food Price Index"</span>)</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">"index"</span>)<span class="op">;</span> ax.legend(frameon<span class="op">=</span><span class="va">False</span>, ncol<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()<span class="op">;</span> plt.show()</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"LightGBM (local, recursive) RMSE: </span><span class="sc">{</span>rmse(y.iloc[<span class="op">-</span>H:].values, lgbm_local.values)<span class="sc">:.2f}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="part-08-ml-forecasting_files/figure-html/cell-6-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>LightGBM (local, recursive) RMSE: 20.90</code></pre>
+</div>
+</div>
+<p><code>skforecast</code> also offers <code>backtesting_forecaster</code> (walk-forward CV in one call), direct multi-output forecasters, exogenous-variable support, and probabilistic intervals — the practical way to run everything from Parts 6–7 without hand-coding the loop.</p>
+</section>
+<section id="global-vs.-local-models-the-ml-reduction-payoff" class="level2">
+<h2 class="anchored" data-anchor-id="global-vs.-local-models-the-ml-reduction-payoff">5. Global vs.&nbsp;local models — the ML-reduction payoff</h2>
+<p>A <strong>local</strong> model is fit to one series. A <strong>global</strong> model is fit to <strong>all series at once</strong>: we stack every series’ feature rows into one training set, add a <strong>series identifier</strong>, and train a single learner. The bet is that the series share dynamics, so pooling gives the model far more data to learn from.</p>
+<p>A practical wrinkle: our nine series live on wildly different scales (VIX ~20, TSP ~800). We <strong>standardize each series</strong> by its own training mean/std before pooling, so the model learns <em>shape</em>, not <em>level</em>. Because <strong>MASE is scale-invariant</strong> (numerator and denominator scale together), we can score directly on the standardized series and compare fairly across all nine.</p>
+<div id="c84811d1" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T21:19:57.800659Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T21:19:57.799790Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T21:19:59.143313Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T21:19:59.142162Z&quot;}}" data-execution_count="6">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> standardized_supervised(s):</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    mu, sd <span class="op">=</span> s.iloc[:<span class="op">-</span>H].mean(), s.iloc[:<span class="op">-</span>H].std()     <span class="co"># train-only stats (leak-free)</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    z <span class="op">=</span> (s <span class="op">-</span> mu) <span class="op">/</span> sd</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    X, yz <span class="op">=</span> feature_matrix(z)</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> X, yz</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>store <span class="op">=</span> {c: standardized_supervised(df[c]) <span class="cf">for</span> c <span class="kw">in</span> SERIES}</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="co"># LOCAL: one LightGBM per series</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>local <span class="op">=</span> {}</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> c <span class="kw">in</span> SERIES:</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>    X, yz <span class="op">=</span> store[c]<span class="op">;</span> tr <span class="op">=</span> X.index <span class="op">&lt;</span> df.index[<span class="op">-</span>H]</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>    m <span class="op">=</span> LGBMRegressor(n_estimators<span class="op">=</span><span class="dv">300</span>, learning_rate<span class="op">=</span><span class="fl">0.05</span>, num_leaves<span class="op">=</span><span class="dv">31</span>, verbose<span class="op">=-</span><span class="dv">1</span>)</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>    m.fit(X[tr], yz[tr])</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>    local[c] <span class="op">=</span> mase(yz[<span class="op">~</span>tr].values, m.predict(X[<span class="op">~</span>tr]), yz[tr])</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a><span class="co"># GLOBAL: one LightGBM across ALL series, with a series-id feature</span></span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>frames <span class="op">=</span> []</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, c <span class="kw">in</span> <span class="bu">enumerate</span>(SERIES):</span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>    X, yz <span class="op">=</span> store[c]<span class="op">;</span> Xg <span class="op">=</span> X.copy()<span class="op">;</span> Xg[<span class="st">"series_id"</span>] <span class="op">=</span> i</span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>    frames.append(pd.concat([Xg, yz.rename(<span class="st">"y"</span>)], axis<span class="op">=</span><span class="dv">1</span>))</span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>allrows <span class="op">=</span> pd.concat(frames)<span class="op">;</span> trm <span class="op">=</span> allrows.index <span class="op">&lt;</span> df.index[<span class="op">-</span>H]</span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>gmodel <span class="op">=</span> LGBMRegressor(n_estimators<span class="op">=</span><span class="dv">500</span>, learning_rate<span class="op">=</span><span class="fl">0.05</span>, num_leaves<span class="op">=</span><span class="dv">63</span>, verbose<span class="op">=-</span><span class="dv">1</span>)</span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>gmodel.fit(allrows[trm].drop(columns<span class="op">=</span><span class="st">"y"</span>), allrows[trm][<span class="st">"y"</span>])</span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>glob <span class="op">=</span> {}</span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, c <span class="kw">in</span> <span class="bu">enumerate</span>(SERIES):</span>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a>    X, yz <span class="op">=</span> store[c]<span class="op">;</span> Xg <span class="op">=</span> X.copy()<span class="op">;</span> Xg[<span class="st">"series_id"</span>] <span class="op">=</span> i</span>
+<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a>    te <span class="op">=</span> X.index <span class="op">&gt;=</span> df.index[<span class="op">-</span>H]</span>
+<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a>    glob[c] <span class="op">=</span> mase(yz[te].values, gmodel.predict(Xg[te]), yz[<span class="op">~</span>te])</span>
+<span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-32"><a href="#cb9-32" aria-hidden="true" tabindex="-1"></a>comp <span class="op">=</span> pd.DataFrame({<span class="st">"local"</span>: local, <span class="st">"global"</span>: glob}).<span class="bu">round</span>(<span class="dv">3</span>)</span>
+<span id="cb9-33"><a href="#cb9-33" aria-hidden="true" tabindex="-1"></a>comp.loc[<span class="st">"— MEAN —"</span>] <span class="op">=</span> comp.mean().<span class="bu">round</span>(<span class="dv">3</span>)</span>
+<span id="cb9-34"><a href="#cb9-34" aria-hidden="true" tabindex="-1"></a>comp</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="6">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">local</th>
+<th data-quarto-table-cell-role="th">global</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">Urea_Price</th>
+<td>0.401</td>
+<td>0.280</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">MP_Price</th>
+<td>0.388</td>
+<td>0.366</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">TSP_Price</th>
+<td>0.431</td>
+<td>0.319</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">Maize_Price</th>
+<td>0.324</td>
+<td>0.315</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">Rice_Price</th>
+<td>0.502</td>
+<td>0.522</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">Wheat_Price</th>
+<td>0.259</td>
+<td>0.299</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">Food_Price_Index</th>
+<td>0.290</td>
+<td>0.340</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">Energy_Price_Index</th>
+<td>0.403</td>
+<td>0.322</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">VIX_Index</th>
+<td>0.796</td>
+<td>0.837</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">— MEAN —</th>
+<td>0.422</td>
+<td>0.400</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div id="e7616db8" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T21:19:59.145699Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T21:19:59.145014Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T21:19:59.299043Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T21:19:59.298179Z&quot;}}" data-execution_count="7">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>plot_df <span class="op">=</span> comp.drop(<span class="st">"— MEAN —"</span>)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">11</span>, <span class="fl">4.4</span>))</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>xpos <span class="op">=</span> np.arange(<span class="bu">len</span>(plot_df))<span class="op">;</span> w <span class="op">=</span> <span class="fl">0.4</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>ax.bar(xpos <span class="op">-</span> w<span class="op">/</span><span class="dv">2</span>, plot_df[<span class="st">"local"</span>],  w, color<span class="op">=</span>PALETTE[<span class="dv">5</span>], label<span class="op">=</span><span class="st">"local (per-series)"</span>)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>ax.bar(xpos <span class="op">+</span> w<span class="op">/</span><span class="dv">2</span>, plot_df[<span class="st">"global"</span>], w, color<span class="op">=</span>PALETTE[<span class="dv">0</span>], label<span class="op">=</span><span class="st">"global (pooled)"</span>)</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>ax.set_xticks(xpos)<span class="op">;</span> ax.set_xticklabels(plot_df.index, rotation<span class="op">=</span><span class="dv">40</span>, ha<span class="op">=</span><span class="st">"right"</span>, fontsize<span class="op">=</span><span class="dv">8</span>)</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">"one-step MASE (lower = better)"</span>)</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"Global vs. local LightGBM — one-step MASE across all nine series"</span>)</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>ax.legend(frameon<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()<span class="op">;</span> plt.show()</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>wins <span class="op">=</span> <span class="bu">int</span>((plot_df[<span class="st">"global"</span>] <span class="op">&lt;</span> plot_df[<span class="st">"local"</span>]).<span class="bu">sum</span>())</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Global beats local on </span><span class="sc">{</span>wins<span class="sc">}</span><span class="ss"> of </span><span class="sc">{</span><span class="bu">len</span>(plot_df)<span class="sc">}</span><span class="ss"> series; "</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>      <span class="ss">f"mean MASE local=</span><span class="sc">{</span>plot_df[<span class="st">'local'</span>]<span class="sc">.</span>mean()<span class="sc">:.3f}</span><span class="ss">, global=</span><span class="sc">{</span>plot_df[<span class="st">'global'</span>]<span class="sc">.</span>mean()<span class="sc">:.3f}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="part-08-ml-forecasting_files/figure-html/cell-8-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Global beats local on 5 of 9 series; mean MASE local=0.422, global=0.400</code></pre>
+</div>
+</div>
+<p>A nuanced, honest result — and a genuinely useful one:</p>
+<ul>
+<li><strong>On average the global model wins</strong>, by a small margin, with a <em>single</em> model instead of nine.</li>
+<li>It helps most on the <strong>related</strong> series — the fertilizers and energy, which we showed back in Part 5 are cointegrated and share dynamics — and <strong>hurts</strong> the more idiosyncratic ones (some crops, the VIX), where being forced to share one model is a handicap.</li>
+<li>With only <strong>nine heterogeneous</strong> series the pooling benefit is modest. The decisive global-model wins arrive with <strong>hundreds or thousands of related</strong> series (retail SKUs, meters, sensors), where each series is short and pooling is transformative. <strong>That</strong> is the regime where the ML reduction dominates classical per-series modelling — and it’s why the industry’s large-scale forecasters are global.</li>
+</ul>
+</section>
+<section id="global-models-the-easy-way-mlforecast" class="level2">
+<h2 class="anchored" data-anchor-id="global-models-the-easy-way-mlforecast">6. Global models the easy way — <code>mlforecast</code></h2>
+<p>Building the pooled matrix by hand is instructive; <strong><code>mlforecast</code></strong> (Nixtla) does it idiomatically from <strong>long-format</strong> data — lag/rolling features, per-series target scaling, and recursive multi-step for <em>every</em> series in a couple of calls.</p>
+<div id="31878919" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T21:19:59.301386Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T21:19:59.300693Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T21:20:00.117823Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T21:20:00.116892Z&quot;}}" data-execution_count="8">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mlforecast <span class="im">import</span> MLForecast</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mlforecast.target_transforms <span class="im">import</span> LocalStandardScaler</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="bu">long</span> <span class="op">=</span> df.reset_index().melt(id_vars<span class="op">=</span><span class="st">"ds"</span>, var_name<span class="op">=</span><span class="st">"unique_id"</span>, value_name<span class="op">=</span><span class="st">"y"</span>)</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>train_long <span class="op">=</span> <span class="bu">long</span>[<span class="bu">long</span>[<span class="st">"ds"</span>] <span class="op">&lt;</span> df.index[<span class="op">-</span>H]]</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>mlf <span class="op">=</span> MLForecast(</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>    models<span class="op">=</span>[LGBMRegressor(n_estimators<span class="op">=</span><span class="dv">400</span>, learning_rate<span class="op">=</span><span class="fl">0.05</span>, num_leaves<span class="op">=</span><span class="dv">63</span>, verbose<span class="op">=-</span><span class="dv">1</span>)],</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>    freq<span class="op">=</span><span class="st">"MS"</span>, lags<span class="op">=</span>[<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">12</span>],</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>    target_transforms<span class="op">=</span>[LocalStandardScaler()],      <span class="co"># per-series scaling, handled for us</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>mlf.fit(train_long, id_col<span class="op">=</span><span class="st">"unique_id"</span>, time_col<span class="op">=</span><span class="st">"ds"</span>, target_col<span class="op">=</span><span class="st">"y"</span>)</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>fc <span class="op">=</span> mlf.predict(h<span class="op">=</span>H)</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>mcol <span class="op">=</span> [c <span class="cf">for</span> c <span class="kw">in</span> fc.columns <span class="cf">if</span> c <span class="kw">not</span> <span class="kw">in</span> (<span class="st">"unique_id"</span>, <span class="st">"ds"</span>)][<span class="dv">0</span>]</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"one fitted global model, forecasts for all series:"</span>)</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>fc.head(<span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>one fitted global model, forecasts for all series:</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="8">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">unique_id</th>
+<th data-quarto-table-cell-role="th">ds</th>
+<th data-quarto-table-cell-role="th">LGBMRegressor</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>Energy_Price_Index</td>
+<td>2019-09-01</td>
+<td>70.766910</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>Energy_Price_Index</td>
+<td>2019-10-01</td>
+<td>69.610857</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>Energy_Price_Index</td>
+<td>2019-11-01</td>
+<td>72.475973</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>In three calls we fit <strong>one</strong> model across all nine series and produced 24-month recursive forecasts for each. That convenience — plus built-in backtesting, exogenous features, and probabilistic outputs — is why <code>mlforecast</code>/<code>skforecast</code> are the practical backbone of ML forecasting. (As Section 5’s caveat predicts, the <em>recursive multi-step</em> global forecast doesn’t dominate the classical models on these few heterogeneous macro series; the tooling is what scales to the many-series problems where it does.)</p>
+</section>
+<section id="synthesis-benchmark-food-price-index-24-month-hold-out" class="level2">
+<h2 class="anchored" data-anchor-id="synthesis-benchmark-food-price-index-24-month-hold-out">7. Synthesis benchmark — Food Price Index, 24-month hold-out</h2>
+<p>Finally, place the ML forecasters beside the classical winners of Parts 3–5 on the familiar hold-out. We compare the <strong>local recursive LightGBM</strong> and the <strong>global</strong> LightGBM against Drift, ETS, and ARIMA.</p>
+<div id="226fe044" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T21:20:00.119560Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T21:20:00.119396Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T21:20:01.356430Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T21:20:01.355466Z&quot;}}" data-execution_count="9">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> statsmodels.tsa.exponential_smoothing.ets <span class="im">import</span> ETSModel</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> statsmodels.tsa.arima.model <span class="im">import</span> ARIMA</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>train, test <span class="op">=</span> y.iloc[:<span class="op">-</span>H], y.iloc[<span class="op">-</span>H:]</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>drift <span class="op">=</span> train.iloc[<span class="op">-</span><span class="dv">1</span>] <span class="op">+</span> (train.iloc[<span class="op">-</span><span class="dv">1</span>]<span class="op">-</span>train.iloc[<span class="dv">0</span>])<span class="op">/</span>(<span class="bu">len</span>(train)<span class="op">-</span><span class="dv">1</span>) <span class="op">*</span> np.arange(<span class="dv">1</span>, H<span class="op">+</span><span class="dv">1</span>)</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>ets <span class="op">=</span> ETSModel(train, error<span class="op">=</span><span class="st">"mul"</span>, trend<span class="op">=</span><span class="st">"add"</span>, damped_trend<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>               initialization_method<span class="op">=</span><span class="st">"estimated"</span>).fit(disp<span class="op">=</span><span class="va">False</span>).forecast(H)</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>arima <span class="op">=</span> ARIMA(train, order<span class="op">=</span>(<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">0</span>)).fit().get_forecast(H).predicted_mean</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>global_food <span class="op">=</span> fc[fc[<span class="st">"unique_id"</span>] <span class="op">==</span> <span class="st">"Food_Price_Index"</span>][mcol].values</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>board <span class="op">=</span> pd.DataFrame([</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>    {<span class="st">"model"</span>: <span class="st">"Drift [baseline]"</span>,        <span class="st">"RMSE"</span>: <span class="bu">round</span>(rmse(test, drift), <span class="dv">2</span>)},</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>    {<span class="st">"model"</span>: <span class="st">"ETS(M,Ad,N) [Part 3]"</span>,    <span class="st">"RMSE"</span>: <span class="bu">round</span>(rmse(test, ets.values), <span class="dv">2</span>)},</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>    {<span class="st">"model"</span>: <span class="st">"ARIMA(1,1,0) [Part 4]"</span>,   <span class="st">"RMSE"</span>: <span class="bu">round</span>(rmse(test, arima.values), <span class="dv">2</span>)},</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>    {<span class="st">"model"</span>: <span class="st">"LightGBM local [skforecast]"</span>,  <span class="st">"RMSE"</span>: <span class="bu">round</span>(rmse(test, lgbm_local.values), <span class="dv">2</span>)},</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>    {<span class="st">"model"</span>: <span class="st">"LightGBM global [mlforecast]"</span>, <span class="st">"RMSE"</span>: <span class="bu">round</span>(rmse(test, global_food), <span class="dv">2</span>)},</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>]).sort_values(<span class="st">"RMSE"</span>).reset_index(drop<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>board</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="9">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">model</th>
+<th data-quarto-table-cell-role="th">RMSE</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>Drift [baseline]</td>
+<td>20.09</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>LightGBM local [skforecast]</td>
+<td>20.90</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>ARIMA(1,1,0) [Part 4]</td>
+<td>22.55</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>ETS(M,Ad,N) [Part 3]</td>
+<td>23.81</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>LightGBM global [mlforecast]</td>
+<td>31.30</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>The <strong>local recursive LightGBM is genuinely competitive</strong> — it beats ETS and ARIMA on this hold-out and sits just behind the drift baseline, the best a model has managed across the whole series. The <strong>global</strong> model underperforms <em>here</em>, for the reasons Section 5 gave: recursive error-compounding over 24 steps, on a pool of only nine heterogeneous macro series, is the wrong regime for it. The lesson is not “global is worse” but <strong>“match the method to the data”</strong>: global + boosting is built for many related series, and on those it is state of the art.</p>
+</section>
+<section id="exercises" class="level2">
+<h2 class="anchored" data-anchor-id="exercises">8. Exercises</h2>
+<ol type="1">
+<li><strong>Tune the booster.</strong> Grid-search LightGBM’s <code>num_leaves</code> and <code>learning_rate</code> with <code>skforecast</code>’s backtesting. Can a tuned local model beat drift?</li>
+<li><strong>Direct vs recursive.</strong> Use <code>skforecast</code>’s direct multi-output forecaster and compare its 24-month RMSE to the recursive one from Section 4.</li>
+<li><strong>Exogenous boosting.</strong> Add lagged energy and VIX to the LightGBM feature set. Do the importances or the backtest change?</li>
+<li><strong>Global on returns.</strong> Rebuild the global model on <strong>log-returns</strong> instead of standardized levels. Does pooling help more when all series share a return scale?</li>
+<li><strong>More is better?</strong> Duplicate each series with small noise to simulate “many related series,” refit the global model, and watch whether its edge over local grows.</li>
+</ol>
+<div id="c1b72a21" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-11T21:20:01.358364Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-11T21:20:01.358058Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-11T21:20:02.149186Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-11T21:20:02.148198Z&quot;}}" data-execution_count="10">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Solution to Exercise 2 (setup): skforecast direct multi-output ---</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> skforecast.direct <span class="im">import</span> ForecasterDirect</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>fd <span class="op">=</span> ForecasterDirect(</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>    estimator<span class="op">=</span>LGBMRegressor(n_estimators<span class="op">=</span><span class="dv">200</span>, learning_rate<span class="op">=</span><span class="fl">0.05</span>, num_leaves<span class="op">=</span><span class="dv">31</span>, verbose<span class="op">=-</span><span class="dv">1</span>),</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>    lags<span class="op">=</span><span class="dv">12</span>, steps<span class="op">=</span>H)</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>fd.fit(y<span class="op">=</span>train)</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>direct_fc <span class="op">=</span> fd.predict(steps<span class="op">=</span>H)</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Direct   multi-output LightGBM RMSE: </span><span class="sc">{</span>rmse(test, direct_fc.values)<span class="sc">:.2f}</span><span class="ss">"</span>)</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Recursive            LightGBM RMSE: </span><span class="sc">{</span>rmse(test, lgbm_local.values)<span class="sc">:.2f}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Direct   multi-output LightGBM RMSE: 17.01
+Recursive            LightGBM RMSE: 20.90</code></pre>
+</div>
+</div>
+</section>
+<section id="key-takeaways" class="level2">
+<h2 class="anchored" data-anchor-id="key-takeaways">9. Key takeaways</h2>
+<ul>
+<li><strong>Regularized linear</strong> models (Ridge, Lasso) are strong, fast baselines on lag features; Lasso doubles as feature selection.</li>
+<li><strong>Gradient-boosted trees</strong> (XGBoost, LightGBM, CatBoost) are the tabular workhorses, but on a <strong>single short series</strong> they mostly recover persistence — and, being tree-based, <strong>cannot extrapolate</strong> beyond the training range.</li>
+<li><strong><code>skforecast</code></strong> and <strong><code>mlforecast</code></strong> wrap any regressor with lag creation, recursive/direct multi-step, backtesting, and exogenous support — use them instead of hand-coding.</li>
+<li><strong>Global models</strong> — one learner across many series — are the reduction’s real payoff. Here they win narrowly on average and clearly on the <em>related</em> series, but the decisive gains need <strong>many</strong> related series, not nine heterogeneous ones.</li>
+<li><strong>Match method to data:</strong> a local recursive LightGBM beat ETS/ARIMA on our hold-out; global + boosting is built for large panels of related series.</li>
+</ul>
+<section id="whats-next-part-9-deep-learning-for-sequences" class="level3">
+<h3 class="anchored" data-anchor-id="whats-next-part-9-deep-learning-for-sequences">What’s next — Part 9: Deep Learning for Sequences</h3>
+<p>Trees can’t extrapolate and don’t model sequences natively. Part 9 turns to <strong>neural networks built for sequences</strong> — windowing for supervised deep learning, <strong>MLPs</strong>, <strong>1D CNNs / TCNs</strong>, and the recurrent family (<strong>RNN, LSTM, GRU</strong>) — the architectures that can, in principle, learn trends and long-range structure a tree never will.</p>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+    const viewSource = window.document.getElementById('quarto-view-source') ||
+                       window.document.getElementById('quarto-code-tools-source');
+    if (viewSource) {
+      const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+      viewSource.addEventListener("click", function(e) {
+        if (sourceUrl) {
+          // rstudio viewer pane
+          if (/\bcapabilities=\b/.test(window.location)) {
+            window.open(sourceUrl);
+          } else {
+            window.location.href = sourceUrl;
+          }
+        } else {
+          const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+          modal.show();
+        }
+        return false;
+      });
+    }
+    function toggleCodeHandler(show) {
+      return function(e) {
+        const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+        for (let i=0; i<detailsSrc.length; i++) {
+          const details = detailsSrc[i].parentElement;
+          if (show) {
+            details.open = true;
+          } else {
+            details.removeAttribute("open");
+          }
+        }
+        const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+        const fromCls = show ? "hidden" : "unhidden";
+        const toCls = show ? "unhidden" : "hidden";
+        for (let i=0; i<cellCodeDivs.length; i++) {
+          const codeDiv = cellCodeDivs[i];
+          if (codeDiv.classList.contains(fromCls)) {
+            codeDiv.classList.remove(fromCls);
+            codeDiv.classList.add(toCls);
+          } 
+        }
+        return false;
+      }
+    }
+    const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+    if (hideAllCode) {
+      hideAllCode.addEventListener("click", toggleCodeHandler(false));
+    }
+    const showAllCode = window.document.getElementById("quarto-show-all-code");
+    if (showAllCode) {
+      showAllCode.addEventListener("click", toggleCodeHandler(true));
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/zia207\.github\.io\/Time-Series-Analysis-Python");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../notebooks/part-07-feature-engineering.html" class="pagination-link" aria-label="7 · Feature Engineering &amp; the ML Reduction">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">7 · Feature Engineering &amp; the ML Reduction</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../notebooks/part-09-deep-learning.html" class="pagination-link" aria-label="9 · Deep Learning for Sequences">
+        <span class="nav-page-text">9 · Deep Learning for Sequences</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+<p>Time Series Analysis in Python · a 12-part tutorial</p>
+<div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/zia207/Time-Series-Analysis-Python/blob/main/notebooks/part-08-ml-forecasting.ipynb" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/zia207/Time-Series-Analysis-Python/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+<script src="../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>

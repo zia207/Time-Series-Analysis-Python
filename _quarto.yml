@@ -4,6 +4,8 @@
 project:
   type: website
   output-dir: docs
+  post-render:
+    - "touch docs/.nojekyll"
 
 # The notebooks are already executed; render their stored outputs (do not re-run).
 execute:
@@ -12,6 +14,9 @@ execute:
 website:
   title: "Time Series Analysis in Python"
   description: "From statistical modeling to machine learning — a 12-part applied tutorial."
+  site-url: https://zia207.github.io/Time-Series-Analysis-Python
+  repo-url: https://github.com/zia207/Time-Series-Analysis-Python
+  repo-actions: [source, issue]
   page-navigation: true
   reader-mode: true
   navbar:
@@ -49,7 +54,7 @@ website:
     tools:
       - icon: github
         text: "Source"
-        href: https://github.com/USERNAME/REPO
+        href: https://github.com/zia207/Time-Series-Analysis-Python
   sidebar:
     style: "docked"
     search: true

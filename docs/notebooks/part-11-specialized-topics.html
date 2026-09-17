@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Part 11 — Specialized Topics – Time Series Analysis in Python</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../notebooks/part-12-deployment-capstone.html" rel="next">
+<link href="../notebooks/part-10-modern-dl.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-8b4baf804e461d9b72633f0de59a0cac.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-d5db10917c6d76a3e5f935fb4eb5ba92.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+<script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="nav-sidebar docked nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">Time Series Analysis in Python</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link active" href="../index.html" aria-current="page"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-parts" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Parts</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-parts">    
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-01-foundations.html">
+ <span class="dropdown-text">1 · Foundations &amp; Data Handling</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-02-stationarity.html">
+ <span class="dropdown-text">2 · Statistical Properties &amp; Decomposition</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-03-smoothing.html">
+ <span class="dropdown-text">3 · Smoothing &amp; Exponential Methods</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-04-arima.html">
+ <span class="dropdown-text">4 · The ARIMA Family</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-05-advanced-multivariate.html">
+ <span class="dropdown-text">5 · Advanced &amp; Multivariate Models</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-06-evaluation-backtesting.html">
+ <span class="dropdown-text">6 · Evaluation, Backtesting &amp; Baselines</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-07-feature-engineering.html">
+ <span class="dropdown-text">7 · Feature Engineering &amp; the ML Reduction</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-08-ml-forecasting.html">
+ <span class="dropdown-text">8 · Machine Learning Forecasting</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-09-deep-learning.html">
+ <span class="dropdown-text">9 · Deep Learning for Sequences</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-10-modern-dl.html">
+ <span class="dropdown-text">10 · Modern Deep Architectures</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-11-specialized-topics.html">
+ <span class="dropdown-text">11 · Specialized Topics</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/part-12-deployment-capstone.html">
+ <span class="dropdown-text">12 · Deployment &amp; Capstone</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+    <a href="https://github.com/zia207/Time-Series-Analysis-Python" title="Source" class="quarto-navigation-tool px-1" aria-label="Source"><i class="bi bi-github"></i></a>
+  <a href="" class="quarto-reader-toggle quarto-navigation-tool px-1" onclick="window.quartoToggleReader(); return false;" title="Toggle reader mode">
+  <div class="quarto-reader-toggle-btn">
+  <i class="bi"></i>
+  </div>
+</a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../notebooks/part-11-specialized-topics.html">Frontiers &amp; Practice</a></li><li class="breadcrumb-item"><a href="../notebooks/part-11-specialized-topics.html">11 · Specialized Topics</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Foundations</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-01-foundations.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">1 · Foundations &amp; Data Handling</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-02-stationarity.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">2 · Statistical Properties &amp; Decomposition</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Classical Forecasting</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-03-smoothing.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">3 · Smoothing &amp; Exponential Methods</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-04-arima.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4 · The ARIMA Family</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-05-advanced-multivariate.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">5 · Advanced &amp; Multivariate Models</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+ <span class="menu-text">Rigorous Evaluation</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-06-evaluation-backtesting.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">6 · Evaluation, Backtesting &amp; Baselines</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Machine Learning</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-07-feature-engineering.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">7 · Feature Engineering &amp; the ML Reduction</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-08-ml-forecasting.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">8 · Machine Learning Forecasting</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
+ <span class="menu-text">Deep Learning</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-09-deep-learning.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">9 · Deep Learning for Sequences</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-10-modern-dl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">10 · Modern Deep Architectures</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true">
+ <span class="menu-text">Frontiers &amp; Practice</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-11-specialized-topics.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">11 · Specialized Topics</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/part-12-deployment-capstone.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">12 · Deployment &amp; Capstone</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#what-you-will-learn" id="toc-what-you-will-learn" class="nav-link active" data-scroll-target="#what-you-will-learn">What you will learn</a></li>
+  <li><a href="#dataset" id="toc-dataset" class="nav-link" data-scroll-target="#dataset">Dataset</a></li>
+  <li><a href="#setup" id="toc-setup" class="nav-link" data-scroll-target="#setup">0. Setup</a></li>
+  <li><a href="#hierarchical-grouped-forecasting" id="toc-hierarchical-grouped-forecasting" class="nav-link" data-scroll-target="#hierarchical-grouped-forecasting">1. Hierarchical &amp; grouped forecasting</a></li>
+  <li><a href="#change-point-detection" id="toc-change-point-detection" class="nav-link" data-scroll-target="#change-point-detection">2. Change-point detection</a></li>
+  <li><a href="#anomaly-detection" id="toc-anomaly-detection" class="nav-link" data-scroll-target="#anomaly-detection">3. Anomaly detection</a></li>
+  <li><a href="#intermittent-sparse-demand" id="toc-intermittent-sparse-demand" class="nav-link" data-scroll-target="#intermittent-sparse-demand">4. Intermittent &amp; sparse demand</a></li>
+  <li><a href="#long-horizon-forecasting-challenges" id="toc-long-horizon-forecasting-challenges" class="nav-link" data-scroll-target="#long-horizon-forecasting-challenges">5. Long-horizon forecasting challenges</a></li>
+  <li><a href="#foundation-models-zero-few-shot-forecasting" id="toc-foundation-models-zero-few-shot-forecasting" class="nav-link" data-scroll-target="#foundation-models-zero-few-shot-forecasting">6. Foundation models — zero-/few-shot forecasting</a></li>
+  <li><a href="#exercises" id="toc-exercises" class="nav-link" data-scroll-target="#exercises">7. Exercises</a></li>
+  <li><a href="#key-takeaways" id="toc-key-takeaways" class="nav-link" data-scroll-target="#key-takeaways">8. Key takeaways</a>
+  <ul class="collapse">
+  <li><a href="#whats-next-part-12-deployment-capstone" id="toc-whats-next-part-12-deployment-capstone" class="nav-link" data-scroll-target="#whats-next-part-12-deployment-capstone">What’s next — Part 12: Deployment &amp; Capstone</a></li>
+  </ul></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/zia207/Time-Series-Analysis-Python/blob/main/notebooks/part-11-specialized-topics.ipynb" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/zia207/Time-Series-Analysis-Python/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../notebooks/part-11-specialized-topics.html">Frontiers &amp; Practice</a></li><li class="breadcrumb-item"><a href="../notebooks/part-11-specialized-topics.html">11 · Specialized Topics</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">Part 11 — Specialized Topics</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p><strong>Series:</strong> <em>Time Series Analysis in Python — from Statistical Modeling to Machine Learning</em></p>
+<p>Parts 3–10 walked the main forecasting highway. Part 11 visits the important <strong>side roads</strong> — problems that break the standard assumptions and need their own tools: forecasts that must <strong>add up</strong> across a hierarchy, <strong>structural breaks</strong> and <strong>anomalies</strong> hiding in a series, <strong>intermittent</strong> demand full of zeros, the special pain of <strong>long horizons</strong>, and the new <strong>foundation models</strong> that forecast a series they’ve never seen. Each is a compact, practical toolkit.</p>
+<section id="what-you-will-learn" class="level3">
+<h3 class="anchored" data-anchor-id="what-you-will-learn">What you will learn</h3>
+<ol type="1">
+<li><strong>Hierarchical &amp; grouped</strong> forecasting with <strong>reconciliation</strong> (bottom-up, top-down, MinT)</li>
+<li><strong>Change-point detection</strong> — finding structural breaks (<code>ruptures</code>)</li>
+<li><strong>Anomaly detection</strong> — flagging outliers via decomposition residuals</li>
+<li><strong>Intermittent/sparse demand</strong> — Croston, ADIDA, TSB</li>
+<li><strong>Long-horizon</strong> forecasting challenges</li>
+<li><strong>Foundation models</strong> — TimeGPT, Chronos, Moirai, TimesFM (zero-/few-shot)</li>
+</ol>
+</section>
+<section id="dataset" class="level3">
+<h3 class="anchored" data-anchor-id="dataset">Dataset</h3>
+<p>Still <code>monthly_price.csv</code>. New libraries: <code>hierarchicalforecast</code>, <code>statsforecast</code>, <code>ruptures</code>.</p>
+</section>
+<section id="setup" class="level2">
+<h2 class="anchored" data-anchor-id="setup">0. Setup</h2>
+<div id="44dc409b" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-14T00:43:01.589164Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-14T00:43:01.589041Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-14T00:43:02.945840Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-14T00:43:02.944793Z&quot;}}" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings, logging</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.dates <span class="im">as</span> mdates</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>warnings.simplefilter(<span class="st">"ignore"</span>)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> lg <span class="kw">in</span> [<span class="st">"statsforecast"</span>, <span class="st">"hierarchicalforecast"</span>]:</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    logging.getLogger(lg).setLevel(logging.ERROR)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>plt.rcParams.update({</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="st">"figure.figsize"</span>: (<span class="dv">11</span>, <span class="fl">4.2</span>), <span class="st">"figure.dpi"</span>: <span class="dv">110</span>,</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    <span class="st">"axes.grid"</span>: <span class="va">True</span>, <span class="st">"grid.alpha"</span>: <span class="fl">0.3</span>,</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    <span class="st">"axes.spines.top"</span>: <span class="va">False</span>, <span class="st">"axes.spines.right"</span>: <span class="va">False</span>,</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    <span class="st">"axes.titlesize"</span>: <span class="dv">13</span>, <span class="st">"axes.titleweight"</span>: <span class="st">"bold"</span>,</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    <span class="st">"font.size"</span>: <span class="dv">11</span>, <span class="st">"lines.linewidth"</span>: <span class="fl">1.6</span>,</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>PALETTE <span class="op">=</span> [<span class="st">"#2b6cb0"</span>, <span class="st">"#c05621"</span>, <span class="st">"#2f855a"</span>, <span class="st">"#6b46c1"</span>, <span class="st">"#b83280"</span>, <span class="st">"#718096"</span>]</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>raw <span class="op">=</span> pd.read_csv(<span class="st">"monthly_price.csv"</span>)</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>dates <span class="op">=</span> pd.to_datetime(raw[<span class="st">"YEAR"</span>].astype(<span class="bu">str</span>) <span class="op">+</span> <span class="st">"-"</span> <span class="op">+</span> raw[<span class="st">"MONTH"</span>], <span class="bu">format</span><span class="op">=</span><span class="st">"%Y-%b"</span>)</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> raw.drop(columns<span class="op">=</span>[<span class="st">"ID"</span>, <span class="st">"YEAR"</span>, <span class="st">"MONTH"</span>, <span class="st">"TIME"</span>]).copy()</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>df.index <span class="op">=</span> dates<span class="op">;</span> df.index.name <span class="op">=</span> <span class="st">"date"</span><span class="op">;</span> df <span class="op">=</span> df.asfreq(<span class="st">"MS"</span>)</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> rmse(a, p): a,p<span class="op">=</span>np.asarray(a),np.asarray(p)<span class="op">;</span> <span class="cf">return</span> np.sqrt(np.mean((a <span class="op">-</span> p) <span class="op">**</span> <span class="dv">2</span>))</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"ready — series:"</span>, <span class="bu">list</span>(df.columns))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>ready — series: ['Urea_Price', 'MP_Price', 'TSP_Price', 'Maize_Price', 'Rice_Price', 'Wheat_Price', 'Food_Price_Index', 'Energy_Price_Index', 'VIX_Index']</code></pre>
+</div>
+</div>
+</section>
+<section id="hierarchical-grouped-forecasting" class="level2">
+<h2 class="anchored" data-anchor-id="hierarchical-grouped-forecasting">1. Hierarchical &amp; grouped forecasting</h2>
+<p>Forecasts often live in a <strong>hierarchy</strong>: product → category → total; store → region → country. A basic requirement is <strong>coherence</strong> — the forecasts must <strong>add up</strong> (the sum of category forecasts should equal the total forecast). If you forecast every level <strong>independently</strong>, they almost never do — and incoherent forecasts are useless for planning.</p>
+<p><strong>Reconciliation</strong> fixes this. We build a small coherent hierarchy from the three crop prices — a constructed <strong>Total = Maize + Rice + Wheat</strong> — and reconcile.</p>
+<div id="a81f3dc4" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-14T00:43:02.947975Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-14T00:43:02.947292Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-14T00:43:05.092230Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-14T00:43:05.091161Z&quot;}}" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> hierarchicalforecast.utils <span class="im">import</span> aggregate</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>crops <span class="op">=</span> [<span class="st">"Maize_Price"</span>, <span class="st">"Rice_Price"</span>, <span class="st">"Wheat_Price"</span>]</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>records <span class="op">=</span> [{<span class="st">"Category"</span>: <span class="st">"Crops"</span>, <span class="st">"Item"</span>: c, <span class="st">"ds"</span>: ds, <span class="st">"y"</span>: <span class="bu">float</span>(v)}</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>          <span class="cf">for</span> c <span class="kw">in</span> crops <span class="cf">for</span> ds, v <span class="kw">in</span> df[c].items()]</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>bottom <span class="op">=</span> pd.DataFrame(records)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co"># aggregate() builds the hierarchy: a 'Crops' total node + one node per crop</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>Y_df, S_df, tags <span class="op">=</span> aggregate(bottom, spec<span class="op">=</span>[[<span class="st">"Category"</span>], [<span class="st">"Category"</span>, <span class="st">"Item"</span>]])</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>H <span class="op">=</span> <span class="dv">12</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>train <span class="op">=</span> Y_df[Y_df[<span class="st">"ds"</span>] <span class="op">&lt;</span> df.index[<span class="op">-</span>H]]</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>test  <span class="op">=</span> Y_df[Y_df[<span class="st">"ds"</span>] <span class="op">&gt;=</span> df.index[<span class="op">-</span>H]]</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"hierarchy nodes:"</span>, Y_df[<span class="st">"unique_id"</span>].unique().tolist())</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">summing matrix S (rows sum children into parents):"</span>)</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(S_df.to_string(index<span class="op">=</span><span class="va">False</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>hierarchy nodes: ['Crops', 'Crops/Maize_Price', 'Crops/Rice_Price', 'Crops/Wheat_Price']
+
+summing matrix S (rows sum children into parents):
+        unique_id  Crops/Maize_Price  Crops/Rice_Price  Crops/Wheat_Price
+            Crops                1.0               1.0                1.0
+Crops/Maize_Price                1.0               0.0                0.0
+ Crops/Rice_Price                0.0               1.0                0.0
+Crops/Wheat_Price                0.0               0.0                1.0</code></pre>
+</div>
+</div>
+<p>We generate <strong>base</strong> forecasts independently for every node with <code>AutoARIMA</code>, then measure how badly they violate coherence.</p>
+<div id="1893a843" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-14T00:43:05.094831Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-14T00:43:05.094031Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-14T00:43:10.419590Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-14T00:43:10.418210Z&quot;}}" data-execution_count="3">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> statsforecast <span class="im">import</span> StatsForecast</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> statsforecast.models <span class="im">import</span> AutoARIMA</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>sf <span class="op">=</span> StatsForecast(models<span class="op">=</span>[AutoARIMA(season_length<span class="op">=</span><span class="dv">12</span>)], freq<span class="op">=</span><span class="st">"MS"</span>, n_jobs<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>base_fc <span class="op">=</span> sf.forecast(df<span class="op">=</span>train, h<span class="op">=</span>H)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co"># incoherence of the base forecast: Total vs. sum of items</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>items <span class="op">=</span> [u <span class="cf">for</span> u <span class="kw">in</span> Y_df[<span class="st">"unique_id"</span>].unique() <span class="cf">if</span> <span class="st">"/"</span> <span class="kw">in</span> u]</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> incoherence(fc, col):</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    tot <span class="op">=</span> fc[fc[<span class="st">"unique_id"</span>] <span class="op">==</span> <span class="st">"Crops"</span>][col].values</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    itm <span class="op">=</span> <span class="bu">sum</span>(fc[fc[<span class="st">"unique_id"</span>] <span class="op">==</span> u][col].values <span class="cf">for</span> u <span class="kw">in</span> items)</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> np.mean(np.<span class="bu">abs</span>(tot <span class="op">-</span> itm))</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"BASE forecast incoherence (|Total - sum items|, avg): "</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>      <span class="ss">f"</span><span class="sc">{</span>incoherence(base_fc, <span class="st">'AutoARIMA'</span>)<span class="sc">:.2f}</span><span class="ss">  &lt;- forecasts DON'T add up"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>BASE forecast incoherence (|Total - sum items|, avg): 10.72  &lt;- forecasts DON'T add up</code></pre>
+</div>
+</div>
+<p>Now reconcile with three classic methods:</p>
+<ul>
+<li><strong>Bottom-up</strong> — forecast the leaves, sum upward. Simple; ignores top-level signal.</li>
+<li><strong>Top-down</strong> — forecast the total, split by historical proportions. Good top, weaker leaves.</li>
+<li><strong>MinT (minimum-trace)</strong> — the optimal linear reconciliation: combines <em>all</em> levels, weighting by forecast-error covariance. Usually the most accurate.</li>
+</ul>
+<div id="7427d5a2" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-14T00:43:10.422047Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-14T00:43:10.421300Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-14T00:43:10.596702Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-14T00:43:10.595703Z&quot;}}" data-execution_count="4">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> hierarchicalforecast.core <span class="im">import</span> HierarchicalReconciliation</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> hierarchicalforecast.methods <span class="im">import</span> BottomUp, TopDown, MinTrace</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>hrec <span class="op">=</span> HierarchicalReconciliation(reconcilers<span class="op">=</span>[</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    BottomUp(), TopDown(method<span class="op">=</span><span class="st">"forecast_proportions"</span>), MinTrace(method<span class="op">=</span><span class="st">"ols"</span>)])</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>rec <span class="op">=</span> hrec.reconcile(Y_hat_df<span class="op">=</span>base_fc, tags<span class="op">=</span>tags, S_df<span class="op">=</span>S_df, Y_df<span class="op">=</span>train)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>methods <span class="op">=</span> [c <span class="cf">for</span> c <span class="kw">in</span> rec.columns <span class="cf">if</span> c <span class="kw">not</span> <span class="kw">in</span> (<span class="st">"unique_id"</span>, <span class="st">"ds"</span>)]</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>rows <span class="op">=</span> []</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>top_actual <span class="op">=</span> test[test[<span class="st">"unique_id"</span>] <span class="op">==</span> <span class="st">"Crops"</span>][<span class="st">"y"</span>].values</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> m <span class="kw">in</span> methods:</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>    rows.append({<span class="st">"method"</span>: m.replace(<span class="st">"AutoARIMA/"</span>, <span class="st">""</span>).replace(<span class="st">"AutoARIMA"</span>, <span class="st">"base (unreconciled)"</span>),</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>                 <span class="st">"incoherence"</span>: <span class="bu">round</span>(incoherence(rec, m), <span class="dv">3</span>),</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>                 <span class="st">"top-level RMSE"</span>: <span class="bu">round</span>(rmse(top_actual, rec[rec[<span class="st">"unique_id"</span>]<span class="op">==</span><span class="st">"Crops"</span>][m].values), <span class="dv">1</span>)})</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(rows)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="4">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">method</th>
+<th data-quarto-table-cell-role="th">incoherence</th>
+<th data-quarto-table-cell-role="th">top-level RMSE</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>base (unreconciled)</td>
+<td>10.724</td>
+<td>146.5</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>BottomUp</td>
+<td>0.000</td>
+<td>156.0</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>TopDown_method-forecast_proportions</td>
+<td>0.000</td>
+<td>146.5</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>MinTrace_method-ols</td>
+<td>0.000</td>
+<td>148.9</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>The base forecast is <strong>incoherent</strong> (a nonzero gap); <strong>every reconciliation method drives incoherence to exactly 0</strong> — the forecasts now add up by construction. That guarantee is the whole point: reconciled forecasts can be trusted across levels. On accuracy, the methods differ little on this tiny 4-node hierarchy; <strong>MinT’s accuracy edge grows with the size and depth</strong> of the hierarchy (hundreds of products across regions), where sharing information across levels really pays.</p>
+</section>
+<section id="change-point-detection" class="level2">
+<h2 class="anchored" data-anchor-id="change-point-detection">2. Change-point detection</h2>
+<p>A <strong>change point</strong> is a moment when the series’ behaviour shifts regime — a new mean, variance, or trend. Detecting them matters for segmentation, alerting, and knowing when a model needs refitting. The <code>ruptures</code> library searches for the break locations that best explain the series. We use <strong>binary segmentation</strong> and ask for the 5 most significant breaks in the Food Price Index.</p>
+<div id="e83c6f68" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-14T00:43:10.598912Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-14T00:43:10.598117Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-14T00:43:11.042539Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-14T00:43:11.041526Z&quot;}}" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> ruptures <span class="im">as</span> rpt</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>signal <span class="op">=</span> df[<span class="st">"Food_Price_Index"</span>].values.astype(<span class="bu">float</span>)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>bkps <span class="op">=</span> rpt.Binseg(model<span class="op">=</span><span class="st">"l2"</span>, min_size<span class="op">=</span><span class="dv">6</span>).fit(signal).predict(n_bkps<span class="op">=</span><span class="dv">5</span>)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>break_dates <span class="op">=</span> [df.index[b<span class="op">-</span><span class="dv">1</span>] <span class="cf">for</span> b <span class="kw">in</span> bkps <span class="cf">if</span> b <span class="op">&lt;</span> <span class="bu">len</span>(df)]</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">11</span>, <span class="fl">4.4</span>))</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>ax.plot(df.index, signal, color<span class="op">=</span>PALETTE[<span class="dv">0</span>], label<span class="op">=</span><span class="st">"Food Price Index"</span>)</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>prev <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> b <span class="kw">in</span> bkps:</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>    seg <span class="op">=</span> signal[prev:b]</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>    ax.hlines(seg.mean(), df.index[prev], df.index[<span class="bu">min</span>(b<span class="op">-</span><span class="dv">1</span>, <span class="bu">len</span>(df)<span class="op">-</span><span class="dv">1</span>)],</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>              color<span class="op">=</span>PALETTE[<span class="dv">1</span>], lw<span class="op">=</span><span class="fl">2.5</span>)</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>    prev <span class="op">=</span> b</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> bd <span class="kw">in</span> break_dates:</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>    ax.axvline(bd, color<span class="op">=</span><span class="st">"grey"</span>, ls<span class="op">=</span><span class="st">":"</span>, lw<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"Change-point detection (ruptures) — regime shifts in the Food Price Index"</span>)</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">"index"</span>)<span class="op">;</span> ax.legend(frameon<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>ax.xaxis.set_major_locator(mdates.YearLocator(<span class="dv">3</span>))</span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()<span class="op">;</span> plt.show()</span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"detected regime shifts:"</span>, [d.strftime(<span class="st">"%Y-%m"</span>) <span class="cf">for</span> d <span class="kw">in</span> break_dates])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="part-11-specialized-topics_files/figure-html/cell-6-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>detected regime shifts: ['2004-01', '2007-05', '2010-09', '2014-11', '2020-09']</code></pre>
+</div>
+</div>
+<p>The orange segment-means show the regimes, and the detected breaks land on real history: the <strong>2007–08 food-price crisis</strong>, the <strong>2010</strong> second spike, the <strong>2014</strong> commodity downturn, and the <strong>2020</strong> COVID surge. The number of breaks is a knob — a <strong>penalty</strong> (<code>Pelt(model="rbf").predict(pen=…)</code>) chooses it automatically when you don’t want to fix a count.</p>
+</section>
+<section id="anomaly-detection" class="level2">
+<h2 class="anchored" data-anchor-id="anomaly-detection">3. Anomaly detection</h2>
+<p>An <strong>anomaly</strong> is a single observation that doesn’t fit the pattern — a spike, a dropout, a data-entry error. A robust, model-light approach: <strong>decompose</strong> the series (STL, Part 2), then flag points whose <strong>residual</strong> is many standard deviations from zero. Because STL’s trend and seasonal parts absorb the <em>expected</em> structure, what’s left in the residual is the <em>unexpected</em>.</p>
+<div id="44aa0d8a" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-14T00:43:11.044700Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-14T00:43:11.043945Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-14T00:43:11.204739Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-14T00:43:11.203959Z&quot;}}" data-execution_count="6">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> statsmodels.tsa.seasonal <span class="im">import</span> STL</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>series <span class="op">=</span> df[<span class="st">"Food_Price_Index"</span>]</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>res <span class="op">=</span> STL(series, period<span class="op">=</span><span class="dv">12</span>, robust<span class="op">=</span><span class="va">True</span>).fit()</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>resid <span class="op">=</span> res.resid</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>zscore <span class="op">=</span> (resid <span class="op">-</span> resid.mean()) <span class="op">/</span> resid.std()</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>anoms <span class="op">=</span> series[np.<span class="bu">abs</span>(zscore) <span class="op">&gt;</span> <span class="dv">3</span>]        <span class="co"># flag |z| &gt; 3</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">11</span>, <span class="fl">4.4</span>))</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>ax.plot(series.index, series, color<span class="op">=</span>PALETTE[<span class="dv">0</span>], label<span class="op">=</span><span class="st">"Food Price Index"</span>)</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>ax.scatter(anoms.index, anoms.values, color<span class="op">=</span><span class="st">"#c0392b"</span>, s<span class="op">=</span><span class="dv">55</span>, zorder<span class="op">=</span><span class="dv">5</span>,</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>           label<span class="op">=</span><span class="ss">f"anomaly (|z|&gt;3): </span><span class="sc">{</span><span class="bu">len</span>(anoms)<span class="sc">}</span><span class="ss"> pts"</span>)</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"Anomaly detection via STL residuals"</span>)</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">"index"</span>)<span class="op">;</span> ax.legend(frameon<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>ax.xaxis.set_major_locator(mdates.YearLocator(<span class="dv">3</span>))</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()<span class="op">;</span> plt.show()</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"flagged months:"</span>, [d.strftime(<span class="st">"%Y-%m"</span>) <span class="cf">for</span> d <span class="kw">in</span> anoms.index])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="part-11-specialized-topics_files/figure-html/cell-7-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>flagged months: ['2008-02', '2008-03', '2008-04', '2008-05', '2008-06', '2008-07', '2008-08', '2008-09', '2010-05', '2010-06', '2020-05']</code></pre>
+</div>
+</div>
+<p>The flagged months are exactly the genuine shocks — the <strong>2008 food crisis</strong> cluster, <strong>2010</strong>, and <strong>2020-05</strong> (COVID). This STL-residual rule is a strong, interpretable default; dedicated libraries (<code>adtk</code>, PyOD, or the Nixtla anomaly tools) add seasonal-hybrid ESD, isolation forests, and probabilistic detectors when you need them.</p>
+</section>
+<section id="intermittent-sparse-demand" class="level2">
+<h2 class="anchored" data-anchor-id="intermittent-sparse-demand">4. Intermittent &amp; sparse demand</h2>
+<p>Some series are mostly <strong>zeros</strong> with occasional nonzero values — spare parts, slow-moving inventory, rare events. Standard models (ETS, ARIMA) fail here: they chase the zeros and forecast near zero, ignoring the demand that <em>does</em> arrive. <strong>Croston’s method</strong> and its relatives instead model <strong>two things separately</strong> — the size of demand <em>when it occurs</em>, and the interval <em>between</em> occurrences.</p>
+<p>Our price data isn’t intermittent, so we <strong>construct</strong> an intermittent series to demonstrate.</p>
+<div id="be7bb838" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-14T00:43:11.206785Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-14T00:43:11.206120Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-14T00:43:11.514282Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-14T00:43:11.513361Z&quot;}}" data-execution_count="7">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>rng <span class="op">=</span> np.random.default_rng(<span class="dv">1</span>)<span class="op">;</span> n <span class="op">=</span> <span class="dv">120</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>demand <span class="op">=</span> np.where(rng.random(n) <span class="op">&lt;</span> <span class="fl">0.3</span>, rng.integers(<span class="dv">1</span>, <span class="dv">8</span>, n), <span class="dv">0</span>).astype(<span class="bu">float</span>)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>idf <span class="op">=</span> pd.DataFrame({<span class="st">"unique_id"</span>: <span class="st">"part"</span>,</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"ds"</span>: pd.date_range(<span class="st">"2015-01-01"</span>, periods<span class="op">=</span>n, freq<span class="op">=</span><span class="st">"MS"</span>),</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"y"</span>: demand})</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"fraction of zero-demand months: </span><span class="sc">{</span>(demand<span class="op">==</span><span class="dv">0</span>)<span class="sc">.</span>mean()<span class="sc">:.0%}</span><span class="ss">"</span>)</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> statsforecast.models <span class="im">import</span> CrostonClassic, ADIDA, TSB</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>sfi <span class="op">=</span> StatsForecast(models<span class="op">=</span>[CrostonClassic(), ADIDA(), TSB(alpha_d<span class="op">=</span><span class="fl">0.1</span>, alpha_p<span class="op">=</span><span class="fl">0.1</span>)],</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>                    freq<span class="op">=</span><span class="st">"MS"</span>, n_jobs<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>ifc <span class="op">=</span> sfi.forecast(df<span class="op">=</span>idf, h<span class="op">=</span><span class="dv">6</span>)</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">11</span>, <span class="fl">3.8</span>))</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>ax.bar(idf[<span class="st">"ds"</span>], idf[<span class="st">"y"</span>], width<span class="op">=</span><span class="dv">20</span>, color<span class="op">=</span>PALETTE[<span class="dv">5</span>], alpha<span class="op">=</span><span class="fl">0.7</span>, label<span class="op">=</span><span class="st">"intermittent demand"</span>)</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>future <span class="op">=</span> ifc[<span class="st">"ds"</span>]</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> m, c <span class="kw">in</span> <span class="bu">zip</span>([<span class="st">"CrostonClassic"</span>, <span class="st">"ADIDA"</span>, <span class="st">"TSB"</span>], PALETTE):</span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>    ax.plot(future, ifc[m], marker<span class="op">=</span><span class="st">"o"</span>, ms<span class="op">=</span><span class="dv">4</span>, color<span class="op">=</span>c, label<span class="op">=</span>m)</span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>ax.axvline(idf[<span class="st">"ds"</span>].iloc[<span class="op">-</span><span class="dv">1</span>], color<span class="op">=</span><span class="st">"grey"</span>, ls<span class="op">=</span><span class="st">":"</span>, lw<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"Intermittent demand: Croston / ADIDA / TSB forecast the demand *rate*"</span>)</span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">"units"</span>)<span class="op">;</span> ax.legend(frameon<span class="op">=</span><span class="va">False</span>, ncol<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()<span class="op">;</span> plt.show()</span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(ifc.<span class="bu">round</span>(<span class="dv">2</span>).head(<span class="dv">1</span>).to_string(index<span class="op">=</span><span class="va">False</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>fraction of zero-demand months: 70%</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="part-11-specialized-topics_files/figure-html/cell-8-output-2.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>unique_id         ds  CrostonClassic  ADIDA  TSB
+     part 2025-01-01            1.46   1.31 1.23</code></pre>
+</div>
+</div>
+<p>Each method forecasts a smooth <strong>demand rate</strong> (~1.2–1.5 units/period) rather than being dragged to zero — the right target for stocking decisions. <strong>Croston</strong> is the classic; <strong>TSB</strong> handles demand that can go obsolete (updates the probability even in zero periods); <strong>ADIDA</strong> temporally aggregates to reduce intermittence. The metric also changes: RMSE is misleading on intermittent data — practitioners use <strong>MASE</strong> or scaled-error metrics instead.</p>
+</section>
+<section id="long-horizon-forecasting-challenges" class="level2">
+<h2 class="anchored" data-anchor-id="long-horizon-forecasting-challenges">5. Long-horizon forecasting challenges</h2>
+<p>Forecasting far ahead is qualitatively harder, for three reasons: <strong>error compounds</strong> (recursive predictions feed on predictions), <strong>uncertainty grows</strong> (intervals fan out), and <strong>structure drifts</strong> (trends bend, seasonality evolves). We can <em>see</em> the error growth by backtesting a model over many origins and averaging the absolute error at each horizon step.</p>
+<div id="e7ae57bb" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-09-14T00:43:11.516668Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-09-14T00:43:11.515915Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-09-14T00:43:11.734376Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-09-14T00:43:11.733525Z&quot;}}" data-execution_count="8">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> statsmodels.tsa.exponential_smoothing.ets <span class="im">import</span> ETSModel</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> df[<span class="st">"Food_Price_Index"</span>]</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>Hmax, origins <span class="op">=</span> <span class="dv">24</span>, <span class="bu">range</span>(<span class="bu">len</span>(y)<span class="op">-</span><span class="dv">24</span><span class="op">-</span><span class="dv">60</span>, <span class="bu">len</span>(y)<span class="op">-</span><span class="dv">24</span>, <span class="dv">6</span>)   <span class="co"># several rolling origins</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>errs <span class="op">=</span> []</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> o <span class="kw">in</span> origins:</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>    tr <span class="op">=</span> y.iloc[:o]</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>    fc <span class="op">=</span> ETSModel(tr, error<span class="op">=</span><span class="st">"add"</span>, trend<span class="op">=</span><span class="st">"add"</span>, damped_trend<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>                  initialization_method<span class="op">=</span><span class="st">"estimated"</span>).fit(disp<span class="op">=</span><span class="va">False</span>).forecast(Hmax)</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>    actual <span class="op">=</span> y.iloc[o:o<span class="op">+</span>Hmax].values</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>    errs.append(np.<span class="bu">abs</span>(actual <span class="op">-</span> fc.values))</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>mean_err <span class="op">=</span> np.mean(errs, axis<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">11</span>, <span class="fl">3.6</span>))</span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>ax.plot(<span class="bu">range</span>(<span class="dv">1</span>, Hmax<span class="op">+</span><span class="dv">1</span>), mean_err, marker<span class="op">=</span><span class="st">"o"</span>, ms<span class="op">=</span><span class="dv">4</span>, color<span class="op">=</span>PALETTE[<span class="dv">0</span>])</span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"Error compounds with horizon — mean |error| by steps ahead (ETS, rolling origins)"</span>)</span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">"horizon (months ahead)"</span>)<span class="op">;</span> ax.set_ylabel(<span class="st">"mean absolute error"</span>)</span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()<span class="op">;</span> plt.show()</span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"mean |error|: 1-step = </span><span class="sc">{</span>mean_err[<span class="dv">0</span>]<span class="sc">:.2f}</span><span class="ss">  -&gt;  24-step = </span><span class="sc">{</span>mean_err[<span class="op">-</span><span class="dv">1</span>]<span class="sc">:.2f}</span><span class="ss"> "</span></span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a>      <span class="ss">f"(</span><span class="sc">{</span>mean_err[<span class="op">-</span><span class="dv">1</span>]<span class="op">/</span>mean_err[<span class="dv">0</span>]<span class="sc">:.1f}</span><span class="ss">x growth)"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="part-11-specialized-topics_files/figure-html/cell-9-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>mean |error|: 1-step = 1.17  -&gt;  24-step = 8.40 (7.2x growth)</code></pre>
+</div>
+</div>
+<p>Error climbs steadily with the horizon — the fundamental tax on long-range forecasting. Mitigations we’ve met: the <strong>direct</strong> strategy (Part 6) avoids recursive compounding; <strong>N-HiTS</strong>’s multi-rate stacks (Part 10) target long horizons specifically; and <strong>probabilistic</strong> outputs (Part 10) at least make the growing uncertainty <em>honest</em>. Beyond a point, no model can manufacture signal that isn’t there — wide, well-calibrated intervals become the responsible answer.</p>
+</section>
+<section id="foundation-models-zero-few-shot-forecasting" class="level2">
+<h2 class="anchored" data-anchor-id="foundation-models-zero-few-shot-forecasting">6. Foundation models — zero-/few-shot forecasting</h2>
+<p>The newest and most disruptive development: <strong>time-series foundation models</strong> — large networks <strong>pretrained on billions of observations</strong> across many domains, then applied <strong>zero-shot</strong> to a brand-new series with <em>no local training</em>. They are, in effect, the answer to the data-hunger problem that sank the deep models on our single short series in Part 10: the model brings its <em>own</em> data, learned during pretraining.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Model</th>
+<th>Origin</th>
+<th>Core idea</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>TimeGPT</strong></td>
+<td>Nixtla</td>
+<td>API-served transformer; zero-shot + fine-tuning, supports exogenous</td>
+</tr>
+<tr class="even">
+<td><strong>Chronos</strong></td>
+<td>Amazon</td>
+<td><em>tokenizes</em> scaled values and reuses a T5 language-model backbone</td>
+</tr>
+<tr class="odd">
+<td><strong>Moirai</strong></td>
+<td>Salesforce</td>
+<td>masked-encoder, any-frequency, any-variate universal forecaster</td>
+</tr>
+<tr class="even">
+<td><strong>TimesFM</strong></td>
+<td>Google</td>
+<td>decoder-only, patched inputs, trained on a huge time-series corpus</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Capabilities:</strong> genuinely useful <strong>zero-shot</strong> accuracy; strong on <strong>short</strong> series (where local deep models fail); instant to apply; some accept covariates and probabilistic outputs. <strong>Limits:</strong> they can miss <strong>domain-specific</strong> structure, are <strong>large</strong> and often <strong>API- or GPU-bound</strong>, are <strong>black boxes</strong>, and — as research is still settling — don’t always beat a well-tuned classical model on a given dataset. Still, for a short series like ours they’re the most promising path to <em>beating the baseline without training anything</em>.</p>
+<p>The code below shows the (identical-feeling) usage for two of them. It is provided as reference — running it needs the model <strong>weights</strong> (Chronos, from Hugging Face) or an <strong>API key</strong> (TimeGPT), neither available in this offline notebook — so we present it rather than execute it.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Chronos (Amazon): zero-shot, downloads pretrained weights from Hugging Face ---</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> chronos <span class="im">import</span> ChronosPipeline</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>pipe <span class="op">=</span> ChronosPipeline.from_pretrained(<span class="st">"amazon/chronos-t5-small"</span>,</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>                                       device_map<span class="op">=</span><span class="st">"cpu"</span>, torch_dtype<span class="op">=</span>torch.float32)</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>context <span class="op">=</span> torch.tensor(train_series.values)          <span class="co"># your history — no fitting</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>forecast <span class="op">=</span> pipe.predict(context, prediction_length<span class="op">=</span><span class="dv">24</span>)   <span class="co"># [num_samples, 24] draws</span></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>median <span class="op">=</span> forecast.median(dim<span class="op">=</span><span class="dv">0</span>).values               <span class="co"># point forecast</span></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>lo, hi <span class="op">=</span> forecast.quantile(<span class="fl">0.1</span>, <span class="dv">0</span>), forecast.quantile(<span class="fl">0.9</span>, <span class="dv">0</span>)   <span class="co"># 80% interval</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># --- TimeGPT (Nixtla): zero-shot via API (needs an API key) ---</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> nixtla <span class="im">import</span> NixtlaClient</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>client <span class="op">=</span> NixtlaClient(api_key<span class="op">=</span><span class="st">"YOUR_KEY"</span>)</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>fc <span class="op">=</span> client.forecast(df<span class="op">=</span>long_df, h<span class="op">=</span><span class="dv">24</span>, freq<span class="op">=</span><span class="st">"MS"</span>, level<span class="op">=</span>[<span class="dv">80</span>, <span class="dv">90</span>])   <span class="co"># intervals included</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Both follow the same pattern the whole ML/DL arc has been building toward — but with <strong>no training loop at all</strong>. You hand the model your history; it returns a forecast (and intervals) drawn from everything it learned during pretraining.</p>
+</section>
+<section id="exercises" class="level2">
+<h2 class="anchored" data-anchor-id="exercises">7. Exercises</h2>
+<ol type="1">
+<li><strong>Deeper hierarchy.</strong> Add a <strong>grouped</strong> dimension (e.g., split each crop into two synthetic regions) and compare MinT vs bottom-up as the hierarchy grows.</li>
+<li><strong>Penalty vs count.</strong> Run <code>ruptures</code> with <code>Pelt(model="rbf")</code> and vary <code>pen</code>; how does the number of detected breaks change on <code>Energy_Price_Index</code>?</li>
+<li><strong>Anomaly threshold.</strong> Sweep the z-threshold (2, 2.5, 3, 4) and plot how many anomalies each flags — the precision/recall trade-off.</li>
+<li><strong>Intermittence.</strong> Increase the zero-fraction to 60% and compare Croston vs a naive mean; which handles the sparsity better (by MASE)?</li>
+<li><strong>Long horizon.</strong> Repeat the error-growth curve for a <strong>direct</strong> multi-step model and overlay it — does direct grow more slowly than recursive ETS?</li>
+</ol>
+</section>
+<section id="key-takeaways" class="level2">
+<h2 class="anchored" data-anchor-id="key-takeaways">8. Key takeaways</h2>
+<ul>
+<li><strong>Hierarchical</strong> forecasts must be <strong>coherent</strong>; independent base forecasts aren’t. <strong>Reconciliation</strong> (bottom-up, top-down, <strong>MinT</strong>) guarantees they add up — and MinT usually improves accuracy on large hierarchies.</li>
+<li><strong>Change-point</strong> detection (<code>ruptures</code>) finds regime shifts — useful for segmentation, alerting, and deciding when to refit.</li>
+<li><strong>Anomaly</strong> detection via <strong>decomposition residuals</strong> is a robust, interpretable default; flag points whose STL residual is a few σ from zero.</li>
+<li><strong>Intermittent demand</strong> needs <strong>Croston/ADIDA/TSB</strong>, which model demand size and timing separately — and scale-free metrics, not RMSE.</li>
+<li><strong>Long horizons</strong> suffer compounding error and growing uncertainty; use direct strategies, multi-rate architectures, and honest <strong>intervals</strong>.</li>
+<li><strong>Foundation models</strong> (TimeGPT, Chronos, Moirai, TimesFM) forecast <strong>zero-shot</strong> from pretraining — the most promising route for <strong>short</strong> series, at the cost of size, opacity, and access.</li>
+</ul>
+<section id="whats-next-part-12-deployment-capstone" class="level3">
+<h3 class="anchored" data-anchor-id="whats-next-part-12-deployment-capstone">What’s next — Part 12: Deployment &amp; Capstone</h3>
+<p>The finale turns models into a <strong>system</strong>: persistence and reproducible pipelines, <strong>retraining cadence</strong>, monitoring <strong>drift</strong> and forecast degradation, and serving forecasts (batch vs.&nbsp;API, a Streamlit dashboard) — closing with a <strong>capstone</strong> that benchmarks a statistical, an ML, and a deep model on one dataset under the Part 6 backtesting discipline.</p>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+    const viewSource = window.document.getElementById('quarto-view-source') ||
+                       window.document.getElementById('quarto-code-tools-source');
+    if (viewSource) {
+      const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+      viewSource.addEventListener("click", function(e) {
+        if (sourceUrl) {
+          // rstudio viewer pane
+          if (/\bcapabilities=\b/.test(window.location)) {
+            window.open(sourceUrl);
+          } else {
+            window.location.href = sourceUrl;
+          }
+        } else {
+          const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+          modal.show();
+        }
+        return false;
+      });
+    }
+    function toggleCodeHandler(show) {
+      return function(e) {
+        const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+        for (let i=0; i<detailsSrc.length; i++) {
+          const details = detailsSrc[i].parentElement;
+          if (show) {
+            details.open = true;
+          } else {
+            details.removeAttribute("open");
+          }
+        }
+        const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+        const fromCls = show ? "hidden" : "unhidden";
+        const toCls = show ? "unhidden" : "hidden";
+        for (let i=0; i<cellCodeDivs.length; i++) {
+          const codeDiv = cellCodeDivs[i];
+          if (codeDiv.classList.contains(fromCls)) {
+            codeDiv.classList.remove(fromCls);
+            codeDiv.classList.add(toCls);
+          } 
+        }
+        return false;
+      }
+    }
+    const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+    if (hideAllCode) {
+      hideAllCode.addEventListener("click", toggleCodeHandler(false));
+    }
+    const showAllCode = window.document.getElementById("quarto-show-all-code");
+    if (showAllCode) {
+      showAllCode.addEventListener("click", toggleCodeHandler(true));
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/zia207\.github\.io\/Time-Series-Analysis-Python");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../notebooks/part-10-modern-dl.html" class="pagination-link" aria-label="10 · Modern Deep Architectures">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">10 · Modern Deep Architectures</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../notebooks/part-12-deployment-capstone.html" class="pagination-link" aria-label="12 · Deployment &amp; Capstone">
+        <span class="nav-page-text">12 · Deployment &amp; Capstone</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+<p>Time Series Analysis in Python · a 12-part tutorial</p>
+<div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/zia207/Time-Series-Analysis-Python/blob/main/notebooks/part-11-specialized-topics.ipynb" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/zia207/Time-Series-Analysis-Python/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+<script src="../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>

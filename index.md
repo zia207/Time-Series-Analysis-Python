@@ -62,7 +62,7 @@ jupyter lab                          # open any notebook under notebooks/
 ```
 
 The dataset (`monthly_price.csv`) sits alongside the notebooks, so they run
-as-is. Standalone rendered pages are also in the [`html/`](html) folder.
+as-is.
 
 ## Building this website
 
@@ -71,5 +71,4 @@ quarto render        # builds the site into ./docs (ready for GitHub Pages)
 quarto preview       # live local preview
 ```
 
-Then enable **GitHub Pages → Deploy from branch → /docs** in your repository
-settings.
+The live site is at [zia207.github.io/Time-Series-Analysis-Python](https://zia207.github.io/Time-Series-Analysis-Python/).
