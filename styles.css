@@ -1,0 +1,7 @@
+/* light polish over the cosmo theme */
+:root { --bs-primary: #1a4971; }
+h1, h2, h3 { color: #1a4971; letter-spacing: -.01em; }
+h2 { border-bottom: 2px solid #e2e8f0; padding-bottom: .3em; }
+.navbar { box-shadow: 0 1px 6px rgba(16,42,67,.12); }
+blockquote { border-left: 4px solid #c05621; background: #fff8f3; }
+div.sourceCode { border-radius: 7px; }
